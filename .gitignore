@@ -1,0 +1,86 @@
+# ==========================================
+# Environment & Secret Files (All Projects)
+# ==========================================
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+auth.json
+devices.json
+
+# ==========================================
+# Operating System & IDE Files
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.fleet/
+.cursor/
+.zed/
+.codex/
+.nova/
+
+# ==========================================
+# Go Service (wa-service)
+# ==========================================
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+wa-service/wa-service
+wa-service/bin/
+wa-service/dist/
+
+# SQLite & Data directory (WhatsApp session DB / QR session / cache)
+wa-service/data/*.db
+wa-service/data/*.db-*
+wa-service/data/store/
+wa-service/data/sessions/
+
+# Go Test Artifacts
+*.test
+*.out
+
+# ==========================================
+# Laravel Backend (backend)
+# ==========================================
+backend/node_modules/
+backend/vendor/
+backend/public/storage
+backend/public/hot
+backend/public/build
+backend/public/fonts-manifest.dev.json
+backend/storage/*.key
+backend/storage/pail/
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+!backend/storage/framework/cache/.gitignore
+!backend/storage/framework/sessions/.gitignore
+!backend/storage/framework/views/.gitignore
+!backend/storage/logs/.gitignore
+backend/.phpunit.cache/
+backend/.phpunit.result.cache
+backend/.phpactor.json
+backend/_ide_helper.php
+backend/Homestead.json
+backend/Homestead.yaml
+
+# ==========================================
+# General Logs & Dumps
+# ==========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
