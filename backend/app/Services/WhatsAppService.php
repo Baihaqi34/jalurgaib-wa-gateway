@@ -32,6 +32,13 @@ class WhatsAppService
 
             $data = $response->json();
 
+            if (!is_array($data)) {
+                return [
+                    'success' => false,
+                    'message' => 'Go service tidak merespon format JSON yang valid (HTTP ' . $response->status() . '). Pastikan Go WhatsApp service aktif di port 8080.',
+                ];
+            }
+
             if ($response->successful() && ($data['success'] ?? false)) {
                 $device->update(['status' => 'pending']);
             }
@@ -39,7 +46,10 @@ class WhatsAppService
             return $data;
         } catch (\Throwable $e) {
             Log::error('[WA] connectDevice error', ['error' => $e->getMessage()]);
-            return ['success' => false, 'message' => $e->getMessage()];
+            return [
+                'success' => false, 
+                'message' => 'Gagal terhubung ke Go WhatsApp engine: ' . $e->getMessage()
+            ];
         }
     }
 

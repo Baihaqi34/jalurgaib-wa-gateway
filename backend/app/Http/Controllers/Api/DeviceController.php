@@ -87,7 +87,8 @@ class DeviceController extends Controller
 
         $result = $this->waService->connectDevice($device);
 
-        return response()->json($result, $result['success'] ? 200 : 500);
+        $isSuccess = is_array($result) && ($result['success'] ?? false);
+        return response()->json($result, $isSuccess ? 200 : 400);
     }
 
     /**
@@ -99,7 +100,8 @@ class DeviceController extends Controller
 
         $result = $this->waService->disconnectDevice($device);
 
-        return response()->json($result, $result['success'] ? 200 : 500);
+        $isSuccess = is_array($result) && ($result['success'] ?? false);
+        return response()->json($result, $isSuccess ? 200 : 400);
     }
 
     /**
