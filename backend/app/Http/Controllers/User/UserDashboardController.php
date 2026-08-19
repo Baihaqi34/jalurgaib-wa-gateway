@@ -59,9 +59,17 @@ class UserDashboardController extends Controller
         ));
     }
 
+    public function __construct(private readonly WhatsAppService $waService) {}
+
     public function getStats(): JsonResponse
     {
         $user = auth()->user();
+        $devices = $user->devices()->get();
+
+        foreach ($devices as $device) {
+            $this->waService->getDeviceStatus($device);
+        }
+
         $deviceIds = $user->devices()->pluck('id');
 
         return response()->json([
