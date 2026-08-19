@@ -493,9 +493,15 @@
                 } catch(e) {}
             },
 
+            getCsrfToken() {
+                return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            },
+
             async loadMessages() {
                 try {
-                    let res = await fetch('/api/messages');
+                    let res = await fetch('/api/messages', {
+                        headers: { 'Accept': 'application/json' }
+                    });
                     let json = await res.json();
                     if (json.success) this.messages = json.data.data || json.data;
                 } catch(e) {}
@@ -503,7 +509,9 @@
 
             async loadApiKeys() {
                 try {
-                    let res = await fetch('/api/api-keys');
+                    let res = await fetch('/api/api-keys', {
+                        headers: { 'Accept': 'application/json' }
+                    });
                     let json = await res.json();
                     if (json.success) this.apiKeys = json.data;
                 } catch(e) {}
@@ -525,7 +533,11 @@
 
                     let res = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        },
                         body: JSON.stringify(payload)
                     });
                     let json = await res.json();
@@ -559,7 +571,11 @@
                 try {
                     let res = await fetch('/api/devices', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        },
                         body: JSON.stringify(this.newDevice)
                     });
                     let json = await res.json();
@@ -590,7 +606,13 @@
                 });
 
                 try {
-                    let res = await fetch(`/api/devices/${device.id}/connect`, { method: 'POST' });
+                    let res = await fetch(`/api/devices/${device.id}/connect`, { 
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        }
+                    });
                     let json = await res.json();
                     if (json.success) {
                         this.qrMessage = json.message || 'Buka WhatsApp di HP > Perangkat Tertaut > Scan QR Code:';
@@ -623,7 +645,13 @@
 
                 AppSwal.loading('Memutuskan Sesi...', 'Mengirim sinyal logout ke WhatsApp engine...');
                 try {
-                    let res = await fetch(`/api/devices/${device.id}/disconnect`, { method: 'POST' });
+                    let res = await fetch(`/api/devices/${device.id}/disconnect`, { 
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        }
+                    });
                     let json = await res.json();
                     AppSwal.close();
 
@@ -651,7 +679,13 @@
 
                 AppSwal.loading('Menghapus Perangkat...', 'Mohon tunggu sebentar...');
                 try {
-                    let res = await fetch(`/api/devices/${id}`, { method: 'DELETE' });
+                    let res = await fetch(`/api/devices/${id}`, { 
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        }
+                    });
                     let json = await res.json();
                     AppSwal.close();
 
@@ -690,7 +724,11 @@
                 try {
                     let res = await fetch('/api/api-keys', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        },
                         body: JSON.stringify({ name: keyName })
                     });
                     let json = await res.json();
@@ -720,7 +758,13 @@
 
                 AppSwal.loading('Merevoke API Key...', 'Mematikan akses token...');
                 try {
-                    let res = await fetch(`/api/api-keys/${id}/revoke`, { method: 'POST' });
+                    let res = await fetch(`/api/api-keys/${id}/revoke`, { 
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrfToken()
+                        }
+                    });
                     let json = await res.json();
                     AppSwal.close();
 

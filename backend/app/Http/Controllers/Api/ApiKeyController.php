@@ -15,9 +15,9 @@ class ApiKeyController extends Controller
 
     private function getUser(Request $request): User
     {
-        $user = $request->user();
+        $user = $request->user() ?? auth('web')->user() ?? auth()->user();
         if (!$user) {
-            abort(401, 'Unauthenticated');
+            abort(401, 'Unauthenticated. Silakan login kembali.');
         }
         return $user;
     }
