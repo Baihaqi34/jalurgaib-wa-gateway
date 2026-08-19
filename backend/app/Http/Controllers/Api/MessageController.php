@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsAppMessage;
+use App\Models\User;
 use App\Models\Device;
 use App\Models\Message;
-use App\Models\User;
+use Illuminate\Http\Request;
+use App\Jobs\SendWhatsAppMessage;
 use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -30,11 +31,13 @@ class MessageController extends Controller
     public function sendText(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'device_id' => 'required|string|exists:devices,device_id',
-            'to'        => 'required|string|max:20',
-            'message'   => 'required|string|max:4096',
-            'min_delay' => 'nullable|integer|min:500|max:10000',
-            'max_delay' => 'nullable|integer|min:1000|max:30000',
+            'device_id'  => 'required|string|exists:devices,device_id',
+            'to'         => 'required|string|max:20',
+            'message'    => 'required|string|max:4096',
+            'media_url'  => 'nullable|string|url|max:2048',
+            'image'      => 'nullable|image|max:10240', // Maks 10MB
+            'min_delay'  => 'nullable|integer|min:500|max:10000',
+            'max_delay'  => 'nullable|integer|min:1000|max:30000',
         ]);
 
         $user = $this->getUser($request);
@@ -74,11 +77,40 @@ class MessageController extends Controller
             ], 429);
         }
 
+        // Normalize phone number to 62 format
+        $toPhone = preg_replace('/[^0-9]/', '', $validated['to']);
+        if (str_starts_with($toPhone, '0')) {
+            $toPhone = '62' . substr($toPhone, 1);
+        } elseif (str_starts_with($toPhone, '8')) {
+            $toPhone = '62' . $toPhone;
+        }
+
+        // Handle uploaded image file if provided (Save directly into public/uploads)
+        $mediaUrl = $validated['media_url'] ?? null;
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $file = $request->file('image');
+            $filename = 'wa_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('uploads');
+            
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            
+            $file->move($destinationPath, $filename);
+            $mediaUrl = asset('uploads/' . $filename);
+            
+            \Illuminate\Support\Facades\Log::info('[WA Message] Image saved to public/uploads', [
+                'filename' => $filename,
+                'url'      => $mediaUrl,
+            ]);
+        }
+
         $message = Message::create([
             'device_id' => $device->id,
-            'to'        => $validated['to'],
+            'to'        => $toPhone,
             'message'   => $validated['message'],
-            'type'      => 'text',
+            'type'      => $mediaUrl ? 'image' : 'text',
+            'media_url' => $mediaUrl,
             'status'    => 'pending',
             'min_delay' => $validated['min_delay'] ?? 1000,
             'max_delay' => $validated['max_delay'] ?? 4000,
@@ -186,10 +218,12 @@ class MessageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $this->getUser($request);
+        $perPage = (int) $request->query('per_page', 10);
+        $perPage = min(max($perPage, 5), 100);
         
         $messages = Message::whereHas('device', fn($q) => $q->where('user_id', $user->id))
             ->latest()
-            ->paginate(50);
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,

@@ -104,7 +104,7 @@ class WhatsAppService
 
                 $device->update([
                     'status' => $newStatus,
-                    'jid'    => $statusData['jid'] ?? $device->jid,
+                    'jid'    => !empty($statusData['logged_in']) ? ($statusData['jid'] ?? null) : null,
                 ]);
             }
 
@@ -121,18 +121,37 @@ class WhatsAppService
      */
     public function sendText(Message $message, Device $device): array
     {
+        Log::info('[WA Service] Requesting send-text to Go engine', [
+            'url'       => "{$this->baseUrl}/api/message/send-text",
+            'device_id' => $device->device_id,
+            'to'        => $message->to,
+            'message'   => $message->message,
+            'media_url' => $message->media_url,
+        ]);
+
         try {
+            $payload = [
+                'device_id' => $device->device_id,
+                'to'        => $message->to,
+                'message'   => $message->message,
+                'min_delay' => (int) ($message->min_delay ?? 1000),
+                'max_delay' => (int) ($message->max_delay ?? max(($message->min_delay ?? 1000) + 1000, 4000)),
+            ];
+
+            if (!empty($message->media_url)) {
+                $payload['media_url'] = $message->media_url;
+            }
+
             $response = Http::withHeaders($this->headers())
                 ->timeout(60) // Long timeout because Go service adds delay
-                ->post("{$this->baseUrl}/api/message/send-text", [
-                    'device_id' => $device->device_id,
-                    'to'        => $message->to,
-                    'message'   => $message->message,
-                    'min_delay' => (int) ($message->min_delay ?? 1000),
-                    'max_delay' => (int) ($message->max_delay ?? max(($message->min_delay ?? 1000) + 1000, 4000)),
-                ]);
+                ->post("{$this->baseUrl}/api/message/send-text", $payload);
 
             $data = $response->json();
+
+            Log::info('[WA Service] Go Engine response', [
+                'status_code' => $response->status(),
+                'response'    => $data,
+            ]);
 
             if ($response->successful() && ($data['success'] ?? false)) {
                 $message->update([
@@ -141,15 +160,27 @@ class WhatsAppService
                     'sent_at'       => now(),
                 ]);
             } else {
+                $rawMsg = is_array($data) ? ($data['message'] ?? 'Unknown error') : ('HTTP ' . $response->status() . ' - ' . $response->body());
+                $errMsg = $rawMsg;
+
+                if (str_contains($rawMsg, '463')) {
+                    $errMsg = 'WhatsApp Server membatasi chat ke nomor ini (Error 463). Pastikan nomor tujuan pernah membalas chat / simpan nomor di kontak HP pengirim.';
+                } elseif (str_contains($rawMsg, 'no LID found') || str_contains($rawMsg, 'tidak terdaftar')) {
+                    $errMsg = 'Nomor tidak terdaftar di WhatsApp atau salah format.';
+                }
+
                 $message->update([
                     'status'        => 'failed',
-                    'error_message' => $data['message'] ?? 'Unknown error',
+                    'error_message' => $errMsg,
                 ]);
             }
 
-            return $data;
+            return is_array($data) ? $data : ['success' => false, 'message' => $errMsg];
         } catch (\Throwable $e) {
-            Log::error('[WA] sendText error', ['error' => $e->getMessage()]);
+            Log::error('[WA Service] sendText exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $message->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
             return ['success' => false, 'message' => $e->getMessage()];
         }

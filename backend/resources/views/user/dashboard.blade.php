@@ -251,8 +251,30 @@
                 </div>
 
                 <div>
-                    <label class="block text-mono-300 font-bold mb-2">Isi Pesan WhatsApp</label>
+                    <label class="block text-mono-300 font-bold mb-2">Isi Pesan / Caption WhatsApp</label>
                     <textarea x-model="form.message" rows="4" required placeholder="Tuliskan isi pesan Anda di sini..." class="w-full mono-input px-4 py-3 font-medium"></textarea>
+                </div>
+
+                <!-- Optional Image Attachment -->
+                <div class="p-4 bg-mono-950 rounded-2xl border border-mono-700 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-mono-300 font-bold text-xs flex items-center gap-1.5">
+                            <span>🖼️</span> Lampirkan Foto / Gambar <span class="text-mono-500 font-normal">(Opsional)</span>
+                        </label>
+                        <button type="button" x-show="form.image_preview" @click="clearImage()" class="text-red-400 hover:text-red-300 text-[11px] font-semibold">Hapus Foto</button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 items-start">
+                        <div class="flex-1 w-full">
+                            <input type="file" accept="image/*" @change="handleImageUpload($event)" class="w-full text-xs text-mono-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-mono-800 file:text-mono-200 hover:file:bg-mono-700 cursor-pointer">
+                            <p class="text-[11px] text-mono-500 mt-1">Format: JPG, PNG, WEBP (Maks 10MB)</p>
+                        </div>
+                        <template x-if="form.image_preview">
+                            <div class="w-16 h-16 rounded-xl border border-mono-700 overflow-hidden bg-mono-900 flex-shrink-0">
+                                <img :src="form.image_preview" class="w-full h-full object-cover">
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-5 pt-1">
@@ -303,7 +325,7 @@
 
                         <div class="pt-3 border-t border-mono-800 text-[11px] space-y-1 text-mono-400 font-mono">
                             <div>Device ID: <span class="text-mono-200 font-semibold" x-text="d.device_id"></span></div>
-                            <div x-show="d.jid">JID: <span class="text-mono-200" x-text="d.jid"></span></div>
+                            <div x-show="d.status === 'connected' && d.jid">JID: <span class="text-mono-200" x-text="d.jid"></span></div>
                         </div>
 
                         <div class="flex gap-2 pt-2">
@@ -390,21 +412,72 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-mono-800">
-                        <template x-for="m in messages" :key="m.id">
+                        <tr x-show="loadingMessages">
+                            <td colspan="5" class="py-10 text-center">
+                                <div class="inline-flex items-center gap-2 text-mono-400 font-mono text-xs">
+                                    <svg class="animate-spin h-4 w-4 text-mono-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    <span>Memuat riwayat pesan...</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <template x-for="m in messages" :key="m.id" x-show="!loadingMessages">
                             <tr class="hover:bg-mono-900 transition">
                                 <td class="py-3.5 font-mono font-bold text-mono-100" x-text="m.to"></td>
-                                <td class="py-3.5 max-w-xs truncate text-mono-300" x-text="m.message"></td>
+                                <td class="py-3.5 max-w-xs truncate text-mono-300">
+                                    <div class="flex items-center gap-1.5">
+                                        <span x-show="m.media_url" class="px-1.5 py-0.5 rounded bg-mono-800 border border-mono-700 text-[10px] text-mono-300">🖼️ Foto</span>
+                                        <span class="truncate" x-text="m.message"></span>
+                                    </div>
+                                </td>
                                 <td class="py-3.5 font-mono text-[11px] text-mono-400" x-text="m.device_id"></td>
                                 <td class="py-3.5">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"
-                                          :class="m.status === 'sent' ? 'bg-mono-50 text-mono-950 font-extrabold' : (m.status === 'pending' ? 'bg-mono-800 text-mono-200 border border-mono-700' : 'bg-mono-900 text-mono-400 border border-mono-800')"
-                                          x-text="m.status"></span>
+                                    <div class="flex flex-col gap-1 max-w-[260px]">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase w-max shadow-sm"
+                                              :class="m.status === 'sent' ? 'bg-mono-50 text-mono-950 font-extrabold' : (m.status === 'pending' ? 'bg-mono-800 text-mono-200 border border-mono-700' : 'bg-red-950/80 text-red-300 border border-red-800')"
+                                              x-text="m.status"></span>
+                                        <span x-show="m.status === 'failed'" 
+                                              class="text-[10px] text-red-400 font-sans leading-snug mt-0.5" 
+                                              x-text="formatErrorMessage(m.error_message)"></span>
+                                    </div>
                                 </td>
                                 <td class="py-3.5 text-mono-400 font-mono text-[11px]" x-text="new Date(m.created_at).toLocaleTimeString('id-ID')"></td>
                             </tr>
                         </template>
+                        <tr x-show="!loadingMessages && messages.length === 0">
+                            <td colspan="5" class="py-8 text-center text-mono-500 font-medium">
+                                Belum ada riwayat pengiriman pesan.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div x-show="messagesPagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-mono-800 text-xs">
+                <div class="text-mono-400 font-mono text-[11px]">
+                    Menampilkan <span class="text-mono-200 font-bold" x-text="messagesPagination.from || 0"></span> - <span class="text-mono-200 font-bold" x-text="messagesPagination.to || 0"></span> dari <span class="text-mono-100 font-bold" x-text="messagesPagination.total"></span> pesan
+                </div>
+                
+                <div class="flex items-center gap-1.5 font-mono">
+                    <button @click="loadMessages(messagesPagination.current_page - 1)" 
+                            :disabled="messagesPagination.current_page <= 1"
+                            class="px-3 py-1.5 rounded-xl border border-mono-700 bg-mono-900 text-mono-200 hover:bg-mono-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold shadow-sm">
+                        ← Sebelumnya
+                    </button>
+                    
+                    <span class="px-3 py-1.5 text-mono-400 font-bold text-[11px]">
+                        Halaman <span class="text-mono-50" x-text="messagesPagination.current_page"></span> / <span x-text="messagesPagination.last_page"></span>
+                    </span>
+
+                    <button @click="loadMessages(messagesPagination.current_page + 1)" 
+                            :disabled="messagesPagination.current_page >= messagesPagination.last_page"
+                            class="px-3 py-1.5 rounded-xl border border-mono-700 bg-mono-900 text-mono-200 hover:bg-mono-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold shadow-sm">
+                        Berikutnya →
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -456,9 +529,29 @@
             stats: { total_devices: 0, connected_dev: 0, total_messages: 0, sent_messages: 0, pending_messages: 0, total_api_keys: 0 },
             devices: [],
             messages: [],
+            messagesPagination: { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 },
+            loadingMessages: false,
             apiKeys: [],
-            form: { device_id: '', to: '', recipients_raw: '', message: '', min_delay: 1000, max_delay: 3000 },
+            form: { device_id: '', to: '', recipients_raw: '', message: '', image_file: null, image_preview: null, min_delay: 1000, max_delay: 3000 },
             newDevice: { name: '', phone_number: '' },
+
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        AppSwal.warning('Ukuran Terlalu Besar', 'Maksimal ukuran foto adalah 10MB.');
+                        event.target.value = '';
+                        return;
+                    }
+                    this.form.image_file = file;
+                    this.form.image_preview = URL.createObjectURL(file);
+                }
+            },
+
+            clearImage() {
+                this.form.image_file = null;
+                this.form.image_preview = null;
+            },
 
             async initApp() {
                 this.loadStats();
@@ -497,14 +590,28 @@
                 return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             },
 
-            async loadMessages() {
+            async loadMessages(page = 1) {
+                this.loadingMessages = true;
                 try {
-                    let res = await fetch('/api/messages', {
+                    let res = await fetch(`/api/messages?page=${page}&per_page=10`, {
                         headers: { 'Accept': 'application/json' }
                     });
                     let json = await res.json();
-                    if (json.success) this.messages = json.data.data || json.data;
-                } catch(e) {}
+                    if (json.success && json.data) {
+                        let paginated = json.data;
+                        this.messages = paginated.data || [];
+                        this.messagesPagination = {
+                            current_page: paginated.current_page || 1,
+                            last_page: paginated.last_page || 1,
+                            total: paginated.total || 0,
+                            from: paginated.from || 0,
+                            to: paginated.to || 0,
+                        };
+                    }
+                } catch(e) {
+                } finally {
+                    this.loadingMessages = false;
+                }
             },
 
             async loadApiKeys() {
@@ -527,27 +634,41 @@
 
                 try {
                     let url = this.sendMode === 'single' ? '/api/messages/send' : '/api/messages/send-bulk';
-                    let payload = this.sendMode === 'single'
-                        ? { device_id: this.form.device_id, to: this.form.to, message: this.form.message, min_delay: parseInt(this.form.min_delay), max_delay: parseInt(this.form.max_delay) }
-                        : { device_id: this.form.device_id, recipients: this.form.recipients_raw.split('\n').map(s=>s.trim()).filter(Boolean), message: this.form.message, min_delay: parseInt(this.form.min_delay), max_delay: parseInt(this.form.max_delay) };
+                    
+                    let formData = new FormData();
+                    formData.append('device_id', this.form.device_id);
+                    formData.append('message', this.form.message);
+                    formData.append('min_delay', this.form.min_delay);
+                    formData.append('max_delay', this.form.max_delay);
+
+                    if (this.sendMode === 'single') {
+                        formData.append('to', this.form.to);
+                    } else {
+                        let recipients = this.form.recipients_raw.split('\n').map(s=>s.trim()).filter(Boolean);
+                        recipients.forEach((r, idx) => formData.append(`recipients[${idx}]`, r));
+                    }
+
+                    if (this.form.image_file) {
+                        formData.append('image', this.form.image_file);
+                    }
 
                     let res = await fetch(url, {
                         method: 'POST',
                         headers: { 
-                            'Content-Type': 'application/json', 
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': this.getCsrfToken()
                         },
-                        body: JSON.stringify(payload)
+                        body: formData
                     });
                     let json = await res.json();
                     AppSwal.close();
 
                     if (json.success) {
-                        AppSwal.toastSuccess('Pesan berhasil masuk antrean pengiriman!');
+                        AppSwal.toastSuccess('Pesan' + (this.form.image_file ? ' & foto' : '') + ' berhasil masuk antrean!');
                         this.form.message = '';
                         this.form.to = '';
                         this.form.recipients_raw = '';
+                        this.clearImage();
                         this.loadMessages();
                         this.loadStats();
                     } else {
@@ -779,6 +900,21 @@
                     AppSwal.close();
                     AppSwal.toastError('Gagal menghubungi server.');
                 }
+            },
+
+            formatErrorMessage(msg) {
+                if (!msg) return 'Pengiriman pesan gagal.';
+                if (msg.includes('463')) {
+                    return 'WhatsApp Server membatasi chat ke nomor ini (Error 463). Pastikan nomor tujuan pernah membalas chat / simpan nomor di kontak HP pengirim.';
+                }
+                if (msg.includes('no LID found') || msg.includes('tidak terdaftar')) {
+                    return 'Nomor tidak terdaftar di WhatsApp atau salah format.';
+                }
+                if (msg.includes('attempted too many times') || msg.includes('Jobs\\')) {
+                    return 'Gagal terkirim: Terjadi antrean padat / timeout saat menghubungi WhatsApp.';
+                }
+                // Jika pesan error di luar kondisi di atas, tampilkan langsung pesan aslinya
+                return msg;
             },
 
             copyText(text) {

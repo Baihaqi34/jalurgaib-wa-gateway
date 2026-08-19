@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -76,37 +77,6 @@ func (sm *SessionManager) GetClient(deviceID string) (*whatsmeow.Client, bool) {
 		}
 	}
 
-	// 3. Fallback to any active logged-in client in memory and map this deviceID to it
-	for oldID, client := range sm.clients {
-		if client != nil && (client.IsLoggedIn() || client.IsConnected()) {
-			delete(sm.clients, oldID)
-			sm.clients[deviceID] = client
-			log.Printf("Mapped active WhatsApp session [%s] to requested device ID [%s]", oldID, deviceID)
-			if client.Store.ID != nil {
-				saveDeviceMap(deviceID, client.Store.ID.String())
-			}
-			return client, true
-		}
-	}
-
-	// 4. Fallback to any paired device stored in SQLite database
-	devices, err := sm.store.GetAllDevices(context.Background())
-	if err == nil {
-		for _, devStore := range devices {
-			if devStore.ID != nil {
-				clientLog := waLog.Stdout("Client", "INFO", true)
-				client := whatsmeow.NewClient(devStore, clientLog)
-				setupEventHandler(client, deviceID)
-				if err := client.Connect(); err == nil {
-					sm.clients[deviceID] = client
-					saveDeviceMap(deviceID, devStore.ID.String())
-					log.Printf("Auto-loaded paired WhatsApp session from DB for [%s]: %s", deviceID, devStore.ID.String())
-					return client, true
-				}
-			}
-		}
-	}
-
 	return nil, false
 }
 
@@ -123,7 +93,14 @@ func (sm *SessionManager) RemoveClient(deviceID string) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 	if c, ok := sm.clients[deviceID]; ok {
-		c.Disconnect()
+		if c.IsLoggedIn() {
+			_ = c.Logout(context.Background())
+		} else {
+			c.Disconnect()
+		}
+		if c.Store != nil && c.Store.ID != nil {
+			_ = c.Store.Delete(context.Background())
+		}
 		delete(sm.clients, deviceID)
 	}
 	removeDeviceMap(deviceID)
@@ -235,6 +212,7 @@ type SendTextRequest struct {
 	DeviceID string `json:"device_id"`
 	To       string `json:"to"`
 	Message  string `json:"message"`
+	MediaURL string `json:"media_url,omitempty"`
 	MinDelay int    `json:"min_delay"`
 	MaxDelay int    `json:"max_delay"`
 }
@@ -259,7 +237,7 @@ func formatPhone(phone string) types.JID {
 	phone = strings.ReplaceAll(phone, " ", "")
 	phone = strings.ReplaceAll(phone, "-", "")
 	if strings.HasPrefix(phone, "0") {
-		phone = "62" + strings.TrimLeft(phone, "0")
+		phone = "62" + strings.TrimPrefix(phone, "0")
 	}
 	return types.NewJID(phone, types.DefaultUserServer)
 }
@@ -284,28 +262,15 @@ func handleConnect(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ctx := context.Background()
-	devices, err := sessionMgr.store.GetAllDevices(ctx)
+	// If not already paired, always create a brand new device store for this DeviceID
 	var deviceStore *store.Device
-
-	if err == nil {
-		for _, d := range devices {
-			if d.ID != nil {
-				// Check if this device store is already assigned to active client
-				alreadyActive := false
-				sessionMgr.mu.RLock()
-				for _, c := range sessionMgr.clients {
-					if c.Store.ID != nil && c.Store.ID.String() == d.ID.String() {
-						alreadyActive = true
-						break
-					}
-				}
-				sessionMgr.mu.RUnlock()
-
-				if !alreadyActive {
-					deviceStore = d
-					break
-				}
+	devMap := loadDeviceMap()
+	if jidStr, ok := devMap[req.DeviceID]; ok {
+		jid, err := types.ParseJID(jidStr)
+		if err == nil {
+			d, err := sessionMgr.store.GetDevice(context.Background(), jid)
+			if err == nil && d != nil && d.ID != nil {
+				deviceStore = d
 			}
 		}
 	}
@@ -320,7 +285,7 @@ func handleConnect(w http.ResponseWriter, r *http.Request) {
 
 	if client.Store.ID == nil {
 		// Needs QR Pairing
-		qrChan, _ := client.GetQRChannel(ctx)
+		qrChan, _ := client.GetQRChannel(context.Background())
 		if err := client.Connect(); err != nil {
 			respondJSON(w, http.StatusInternalServerError, APIResponse{Success: false, Message: fmt.Sprintf("Connect error: %v", err)})
 			return
@@ -460,14 +425,119 @@ func handleSendText(w http.ResponseWriter, r *http.Request) {
 	randomDelay(minDelay, maxDelay)
 
 	jid := formatPhone(req.To)
-	msg := &waE2E.Message{
-		Conversation: proto.String(req.Message),
+
+	// Check if user is registered on WhatsApp
+	isOnWA, err := client.IsOnWhatsApp(context.Background(), []string{jid.User})
+	if err != nil {
+		log.Printf("[%s] IsOnWhatsApp error for %s: %v", req.DeviceID, req.To, err)
+	} else if len(isOnWA) > 0 && !isOnWA[0].IsIn {
+		log.Printf("[%s] Number %s is not registered on WhatsApp", req.DeviceID, req.To)
+		respondJSON(w, http.StatusBadRequest, APIResponse{
+			Success: false, 
+			Message: fmt.Sprintf("Nomor %s tidak terdaftar di WhatsApp.", req.To),
+		})
+		return
+	} else if len(isOnWA) > 0 && isOnWA[0].JID.User != "" {
+		jid = isOnWA[0].JID
+	}
+
+	msg := &waE2E.Message{}
+
+	if req.MediaURL != "" {
+		var data []byte
+		var err error
+
+		// 1. Cek apakah file ada di direktori lokal backend/public
+		localPath := ""
+		if strings.Contains(req.MediaURL, "/uploads/") {
+			parts := strings.Split(req.MediaURL, "/uploads/")
+			if len(parts) > 1 {
+				// Coba baca langsung dari path lokal project
+				candidates := []string{
+					"../backend/public/uploads/" + parts[1],
+					"./backend/public/uploads/" + parts[1],
+					"./public/uploads/" + parts[1],
+					"/var/www/html/jalurgaib-wa-gateway/backend/public/uploads/" + parts[1],
+				}
+				for _, c := range candidates {
+					if _, statErr := os.Stat(c); statErr == nil {
+						localPath = c
+						break
+					}
+				}
+			}
+		}
+
+		if localPath != "" {
+			log.Printf("[%s] Reading local media file: %s", req.DeviceID, localPath)
+			data, err = os.ReadFile(localPath)
+			if err != nil {
+				log.Printf("[%s] Failed to read local media file: %v", req.DeviceID, err)
+			}
+		}
+
+		// 2. Jika bukan file lokal atau gagal baca lokal, download via HTTP
+		if len(data) == 0 {
+			log.Printf("[%s] Downloading media attachment via HTTP from: %s", req.DeviceID, req.MediaURL)
+			resp, httpErr := http.Get(req.MediaURL)
+			if httpErr != nil {
+				log.Printf("[%s] Media HTTP download failed: %v", req.DeviceID, httpErr)
+			} else if resp.StatusCode != http.StatusOK {
+				log.Printf("[%s] Media HTTP download returned status: %d", req.DeviceID, resp.StatusCode)
+				resp.Body.Close()
+			} else {
+				data, err = io.ReadAll(resp.Body)
+				resp.Body.Close()
+				if err != nil {
+					log.Printf("[%s] Media read failed: %v", req.DeviceID, err)
+				}
+			}
+		}
+
+		if len(data) > 0 {
+			mimeType := http.DetectContentType(data)
+			log.Printf("[%s] Uploading %d bytes (mime: %s) to WhatsApp CDN...", req.DeviceID, len(data), mimeType)
+			
+			uploaded, err := client.Upload(context.Background(), data, whatsmeow.MediaImage)
+			if err != nil {
+				log.Printf("[%s] WhatsApp CDN upload failed: %v", req.DeviceID, err)
+			} else {
+				log.Printf("[%s] WhatsApp CDN upload success! DirectPath: %s", req.DeviceID, uploaded.DirectPath)
+				msg.ImageMessage = &waE2E.ImageMessage{
+					Caption:       proto.String(req.Message),
+					URL:           proto.String(uploaded.URL),
+					DirectPath:    proto.String(uploaded.DirectPath),
+					MediaKey:      uploaded.MediaKey,
+					Mimetype:      proto.String(mimeType),
+					FileEncSHA256: uploaded.FileEncSHA256,
+					FileSHA256:    uploaded.FileSHA256,
+					FileLength:    proto.Uint64(uint64(len(data))),
+				}
+			}
+		}
+	}
+
+	if msg.ImageMessage == nil {
+		msg.Conversation = proto.String(req.Message)
 	}
 
 	ts, err := client.SendMessage(context.Background(), jid, msg)
 	if err != nil {
-		log.Printf("[%s] SendMessage error to %s: %v", req.DeviceID, req.To, err)
-		respondJSON(w, http.StatusInternalServerError, APIResponse{Success: false, Message: fmt.Sprintf("Send error: %v", err)})
+		log.Printf("[%s] SendMessage error to %s (%s): %v", req.DeviceID, req.To, jid.String(), err)
+		
+		errStr := err.Error()
+		userFriendlyMsg := errStr
+
+		if strings.Contains(errStr, "463") {
+			userFriendlyMsg = "WhatsApp Server membatasi chat ke nomor ini (Error 463). Pastikan nomor tujuan pernah membalas chat / simpan nomor di kontak HP pengirim."
+		} else if strings.Contains(errStr, "no LID found") {
+			userFriendlyMsg = "Nomor tidak terdaftar di WhatsApp atau salah format."
+		}
+
+		respondJSON(w, http.StatusInternalServerError, APIResponse{
+			Success: false, 
+			Message: userFriendlyMsg,
+		})
 		return
 	}
 

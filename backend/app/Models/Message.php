@@ -15,6 +15,7 @@ class Message extends Model
         'to',
         'message',
         'type',       // text, image, video, document
+        'media_url',  // URL/path to media file
         'status',     // pending, sent, failed
         'wa_message_id',
         'sent_at',

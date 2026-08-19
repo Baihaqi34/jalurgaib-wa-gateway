@@ -53,9 +53,21 @@ class SendWhatsAppMessage implements ShouldQueue
         $result = $waService->sendText($this->message, $this->device);
 
         if (!($result['success'] ?? false)) {
-            Log::warning('[WA Job] Send failed, will retry', [
-                'error' => $result['message'] ?? 'unknown',
+            $errMsg = $result['message'] ?? 'Gagal terhubung atau WhatsApp offline';
+            Log::warning('[WA Job] Send failed', [
+                'error' => $errMsg,
             ]);
+            $this->message->update([
+                'status'        => 'failed',
+                'error_message' => $errMsg,
+            ]);
+
+            // Jika error 463 (nomor tidak valid/tidak ada di WA), jangan retry terus-menerus
+            if (str_contains($errMsg, '463') || str_contains($errMsg, 'not registered')) {
+                $this->fail(new \Exception($errMsg));
+                return;
+            }
+
             $this->release($this->backoff);
         }
     }

@@ -153,23 +153,29 @@ class WhatsAppNotificationService
     /**
      * Kirim pesan teks WhatsApp melalui JalurGaib WA Gateway
      */
-    public static function sendMessage(string $to, string $message, ?string $deviceId = null): array
+    public static function sendMessage(string $to, string $message, ?string $mediaUrl = null, ?string $deviceId = null): array
     {
         $url      = config('services.wa_gateway.url') . '/messages/send';
         $apiKey   = config('services.wa_gateway.api_key', '{{ $userApiKey }}');
         $deviceId = $deviceId ?? config('services.wa_gateway.device_id', '{{ $userDeviceId }}');
 
         try {
-            $response = Http::withHeaders([
-                'X-API-Key' => $apiKey,
-                'Accept'    => 'application/json',
-            ])->timeout(10)->post($url, [
+            $payload = [
                 'device_id' => $deviceId,
                 'to'        => $to,
                 'message'   => $message,
                 'min_delay' => 1000,
                 'max_delay' => 3000,
-            ]);
+            ];
+
+            if ($mediaUrl) {
+                $payload['media_url'] = $mediaUrl;
+            }
+
+            $response = Http::withHeaders([
+                'X-API-Key' => $apiKey,
+                'Accept'    => 'application/json',
+            ])->timeout(10)->post($url, $payload);
 
             if ($response->successful()) {
                 return [
@@ -217,9 +223,16 @@ class WhatsAppNotificationService
   "device_id": "{{ $userDeviceId }}",
   "to": "6281234567890",
   "message": "Halo! Pesan konfirmasi pesanan #1042 Anda telah diproses.",
+  "media_url": "https://example.com/invoice.jpg", // (Opsional) URL Foto/Gambar langsung
   "min_delay": 1000,
   "max_delay": 3000
 }</pre>
+            </div>
+            <div class="p-4 bg-mono-900 rounded-xl border border-mono-800 text-[11px] space-y-1 text-mono-400">
+                <div class="font-bold text-mono-200">💡 Tips Kirim Foto/Media:</div>
+                <div>• Gunakan field <code class="text-mono-100 font-bold">media_url</code> (berisi link gambar publik).</div>
+                <div>• Atau gunakan <code class="text-mono-100 font-bold">multipart/form-data</code> dengan file upload pada key <code class="text-mono-100 font-bold">image</code>.</div>
+                <div>• Teks pada field <code class="text-mono-100 font-bold">message</code> akan otomatis menjadi caption foto.</div>
             </div>
         </div>
 
@@ -245,6 +258,7 @@ class WhatsAppNotificationService
     "628987654321"
   ],
   "message": "Pengumuman: Layanan kami akan mengalami maintenance pada pukul 00:00 WIB.",
+  "media_url": "https://example.com/banner-promo.png", // (Opsional)
   "min_delay": 2000,
   "max_delay": 5000
 }</pre>
