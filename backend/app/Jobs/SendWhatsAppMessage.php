@@ -62,8 +62,8 @@ class SendWhatsAppMessage implements ShouldQueue
                 'error_message' => $errMsg,
             ]);
 
-            // Jika error 463 (nomor tidak valid/tidak ada di WA), jangan retry terus-menerus
-            if (str_contains($errMsg, '463') || str_contains($errMsg, 'not registered')) {
+            // Jika error 463 / nomor tidak terdaftar di WA, jangan retry terus-menerus
+            if (str_contains($errMsg, '463') || str_contains($errMsg, 'not registered') || str_contains($errMsg, 'tidak terdaftar')) {
                 $this->fail(new \Exception($errMsg));
                 return;
             }

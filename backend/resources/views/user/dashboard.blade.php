@@ -224,9 +224,26 @@
             <p class="text-xs text-mono-400 mb-6">Kirimkan pesan tunggal atau broadcast massal dengan proteksi Anti-Ban</p>
 
             <!-- Mode Selector -->
-            <div class="flex gap-2 p-1 bg-mono-950 border border-mono-700 rounded-xl mb-6 max-w-xs">
+            <div class="flex gap-2 p-1 bg-mono-950 border border-mono-700 rounded-xl mb-5 max-w-xs">
                 <button @click="sendMode = 'single'" :class="sendMode === 'single' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="flex-1 py-1.5 rounded-lg text-xs transition">Pesan Tunggal</button>
                 <button @click="sendMode = 'bulk'" :class="sendMode === 'bulk' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="flex-1 py-1.5 rounded-lg text-xs transition">Massal (Bulk)</button>
+            </div>
+
+            <!-- Warm-up & Old Number Notice -->
+            <div class="p-4 bg-mono-900 border border-mono-700 rounded-2xl mb-6 space-y-2">
+                <div class="flex items-center gap-2 text-xs font-bold text-mono-100">
+                    <span>💡</span>
+                    <span>Rekomendasi Penting: Gunakan Nomor WhatsApp Lama (Aged Number)</span>
+                </div>
+                <p class="text-[11px] text-mono-300 leading-relaxed">
+                    Sangat disarankan menggunakan <strong>nomor WhatsApp lama yang sudah memiliki riwayat chat aktif</strong> agar pesan ke nomor baru/asing (seperti OTP atau notifikasi) tidak dibatasi oleh WhatsApp Server.
+                </p>
+                <div class="text-[11px] text-mono-400 leading-relaxed bg-mono-950 p-3 rounded-xl border border-mono-800 space-y-1 font-mono">
+                    <div class="text-mono-200 font-bold font-sans">🔥 Jika Menggunakan Nomor Baru / Perdana Baru:</div>
+                    <div>1. Lakukan <strong>Warm-up (Pemanasan)</strong> selama 2–4 minggu sebelum dipakai gateway intensif.</div>
+                    <div>2. Sering berinteraksi 2 arah (saling kirim chat & simpan kontak dengan teman/keluarga).</div>
+                    <div>3. Masuk ke beberapa grup WhatsApp aktif dan biarkan ada percakapan harian.</div>
+                </div>
             </div>
 
             <form @submit.prevent="submitMessage()" class="space-y-5 text-xs">
@@ -308,6 +325,16 @@
                 <button @click="showAddDeviceModal = true" class="px-4 py-2.5 mono-btn-primary text-xs font-bold flex items-center gap-2 shadow-sm">
                     <span>➕</span> Daftarkan Nomor Baru
                 </button>
+            </div>
+
+            <!-- Warm Up Alert -->
+            <div class="p-4 bg-mono-900 border border-mono-700 rounded-2xl mb-6 text-xs text-mono-300 space-y-1.5">
+                <div class="font-bold text-mono-50 flex items-center gap-1.5">
+                    <span>🛡️</span> Tips Keamanan & Anti-Ban Nomor:
+                </div>
+                <p class="text-[11px] text-mono-400 leading-relaxed">
+                    Prioritaskan menggunakan <strong>nomor yang sudah lama</strong> dan memiliki reputasi akun yang baik. Jika menggunakan nomor baru, lakukan <em>warm-up</em> (kirim pesan manual, simpan kontak, dan berinteraksi wajar) minimal 2–4 minggu sebelum digunakan untuk blast/broadcast massal.
+                </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

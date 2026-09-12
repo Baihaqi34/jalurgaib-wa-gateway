@@ -424,21 +424,21 @@ func handleSendText(w http.ResponseWriter, r *http.Request) {
 	}
 	randomDelay(minDelay, maxDelay)
 
-	jid := formatPhone(req.To)
+	targetJID := formatPhone(req.To)
+	phoneClean := targetJID.User
+	jid := targetJID
 
 	// Check if user is registered on WhatsApp
-	isOnWA, err := client.IsOnWhatsApp(context.Background(), []string{jid.User})
+	isOnWA, err := client.IsOnWhatsApp(context.Background(), []string{phoneClean})
 	if err != nil {
-		log.Printf("[%s] IsOnWhatsApp error for %s: %v", req.DeviceID, req.To, err)
+		log.Printf("[%s] IsOnWhatsApp check note for %s: %v", req.DeviceID, phoneClean, err)
 	} else if len(isOnWA) > 0 && !isOnWA[0].IsIn {
-		log.Printf("[%s] Number %s is not registered on WhatsApp", req.DeviceID, req.To)
+		log.Printf("[%s] Number %s is NOT registered on WhatsApp", req.DeviceID, phoneClean)
 		respondJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false, 
 			Message: fmt.Sprintf("Nomor %s tidak terdaftar di WhatsApp.", req.To),
 		})
 		return
-	} else if len(isOnWA) > 0 && isOnWA[0].JID.User != "" {
-		jid = isOnWA[0].JID
 	}
 
 	msg := &waE2E.Message{}
@@ -672,8 +672,8 @@ func main() {
 	srv := &http.Server{
 		Addr:         ":" + port,
 		Handler:      r,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  120 * time.Second,
+		WriteTimeout: 120 * time.Second,
 	}
 
 	quit := make(chan os.Signal, 1)
