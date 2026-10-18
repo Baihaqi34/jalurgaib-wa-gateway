@@ -138,4 +138,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(ApiKey::class);
     }
+
+    public function getOrCreateApiKey(): string
+    {
+        $activeKey = $this->apiKeys()->where('is_active', true)->first();
+        if ($activeKey) {
+            return $activeKey->key;
+        }
+
+        $newKey = ApiKey::generate($this->id, 'Default Web Key');
+        return $newKey->key;
+    }
 }

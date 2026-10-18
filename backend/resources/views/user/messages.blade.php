@@ -261,7 +261,8 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-API-Key': document.querySelector('meta[name="api-key"]')?.content || ''
                             },
                             body: JSON.stringify({
                                 device_id: this.form.device_id,
@@ -302,7 +303,8 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-API-Key': document.querySelector('meta[name="api-key"]')?.content || ''
                             },
                             body: JSON.stringify({
                                 device_id: this.form.device_id,

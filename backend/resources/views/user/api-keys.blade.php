@@ -236,7 +236,8 @@ print(response.json())</code></pre>
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-API-Key': document.querySelector('meta[name="api-key"]')?.content || ''
                         },
                         body: JSON.stringify({ name: keyName })
                     });
@@ -270,7 +271,8 @@ print(response.json())</code></pre>
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-API-Key': document.querySelector('meta[name="api-key"]')?.content || ''
                         }
                     });
                     let json = await res.json();

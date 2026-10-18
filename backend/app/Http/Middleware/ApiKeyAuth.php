@@ -30,6 +30,12 @@ class ApiKeyAuth
         } elseif (auth()->check()) {
             // 2. Web Session Authentication
             $user = auth()->user();
+        } elseif (auth('web')->check()) {
+            $user = auth('web')->user();
+        } elseif ($request->user('web')) {
+            $user = $request->user('web');
+        } elseif ($request->user()) {
+            $user = $request->user();
         }
 
         if (!$user) {

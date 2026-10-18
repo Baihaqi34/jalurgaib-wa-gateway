@@ -177,6 +177,16 @@
             activeDeviceId: null,
             pollTimer: null,
 
+            getApiHeaders(contentType = false) {
+                const h = {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-API-Key': document.querySelector('meta[name="api-key"]')?.content || ''
+                };
+                if (contentType) h['Content-Type'] = 'application/json';
+                return h;
+            },
+
             async initDevices() {
                 // Initial loaded from blade
             },
@@ -185,10 +195,7 @@
                 this.refreshing = true;
                 try {
                     let res = await fetch('/api/devices', {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        headers: this.getApiHeaders(false)
                     });
                     let json = await res.json();
                     if (json.success && json.data) {
@@ -259,11 +266,7 @@
                 try {
                     let res = await fetch('/api/devices', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
+                        headers: this.getApiHeaders(true),
                         body: JSON.stringify({
                             name: formValues.name,
                             phone_number: formValues.phone_number
@@ -291,10 +294,7 @@
                 try {
                     let res = await fetch(`/api/devices/${id}/connect`, {
                         method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        headers: this.getApiHeaders(false)
                     });
                     let json = await res.json();
                     AppSwal.close();
@@ -360,10 +360,7 @@
                 this.pollTimer = setInterval(async () => {
                     try {
                         let res = await fetch(`/api/devices/${id}/status`, {
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            }
+                            headers: this.getApiHeaders(false)
                         });
                         let json = await res.json();
                         if (json.success && json.data) {
@@ -395,10 +392,7 @@
                 try {
                     let res = await fetch(`/api/devices/${id}/disconnect`, {
                         method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        headers: this.getApiHeaders(false)
                     });
                     let json = await res.json();
                     AppSwal.close();
@@ -428,10 +422,7 @@
                 try {
                     let res = await fetch(`/api/devices/${id}`, {
                         method: 'DELETE',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        headers: this.getApiHeaders(false)
                     });
                     let json = await res.json();
                     AppSwal.close();
