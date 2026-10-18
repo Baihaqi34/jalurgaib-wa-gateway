@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Tenant WhatsApp Portal — JalurGaib WA Gateway')
-@section('header_title', 'Tenant WhatsApp Portal')
-@section('header_subtitle', 'Panel Pengelolaan WhatsApp, Integrasi API & Pengiriman Pesan')
+@section('title', 'Dashboard Overview — JalurGaib WA Gateway')
+@section('header_title', 'Dashboard Overview')
+@section('header_subtitle', 'Pusat Telemetri WhatsApp, Kuota & Ringkasan Akun Tenant')
 
 @section('content')
-<div x-data="userApp()" x-init="initApp()" class="space-y-8">
+<div x-data="userDashboardApp()" x-init="initApp()" class="space-y-8 font-sans">
 
     <!-- SUSPENSION ANNOUNCEMENT BANNER -->
     @if(auth()->user()->isSuspended())
-        <div class="p-6 bg-mono-900 border-2 border-mono-500 rounded-3xl text-mono-200 shadow-2xl space-y-3">
+        <div class="p-6 bg-mono-900 border-2 border-mono-500 rounded-2xl text-mono-200 shadow-2xl space-y-3">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-mono-50 text-mono-950 flex items-center justify-center text-xl font-bold shadow-md">
-                    ⛔
+                <div class="w-12 h-12 rounded-xl bg-mono-50 text-mono-950 flex items-center justify-center text-xl font-bold shadow-md">
+                    <i class="fa-solid fa-ban text-red-600"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-mono-50 tracking-tight">Akun Anda Sedang Ditangguhkan (Suspended)</h3>
@@ -20,62 +20,70 @@
                 </div>
             </div>
             @if(auth()->user()->suspend_reason)
-                <div class="p-4 bg-mono-950 rounded-2xl border border-mono-700 text-xs">
-                    <span class="font-bold text-mono-300 block mb-1">📢 Catatan dari Administrator:</span>
+                <div class="p-4 bg-mono-950 rounded-xl border border-mono-700 text-xs">
+                    <span class="font-bold text-mono-300 block mb-1">Catatan dari Administrator:</span>
                     <p class="text-mono-100 leading-relaxed font-mono">"{{ auth()->user()->suspend_reason }}"</p>
                 </div>
             @endif
         </div>
     @endif
 
-    <!-- Personal Stats Grid -->
+    <!-- 1. BENTO TELEMETRY KPI CARDS (4-Column Uniform Bento) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         <!-- Connected Devices -->
-        <div class="mono-card p-6">
+        <div class="mono-card p-6 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Perangkat WA</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">📱</div>
+                <span class="text-[11px] font-bold text-mono-400 uppercase tracking-wider font-mono">Perangkat WA</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50">
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums">
                 <span x-text="stats.connected_dev">0</span>
                 <span class="text-sm font-semibold text-mono-400">/ <span x-text="stats.total_devices">0</span> Aktif</span>
             </div>
-            <div class="text-xs text-mono-400 mt-1.5 font-medium">Perangkat WhatsApp terhubung</div>
+            <div class="text-xs text-mono-400 mt-2 font-medium">Perangkat WhatsApp terhubung</div>
         </div>
 
         <!-- Sent Messages -->
-        <div class="mono-card p-6">
+        <div class="mono-card p-6 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Pesan Terkirim</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">✓</div>
+                <span class="text-[11px] font-bold text-mono-400 uppercase tracking-wider font-mono">Pesan Terkirim</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">
+                    <i class="fa-solid fa-check-double text-mono-200"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50" x-text="stats.sent_messages">0</div>
-            <div class="text-xs text-mono-300 font-semibold mt-1.5">Berhasil di-deliver ke nomor tujuan</div>
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums" x-text="stats.sent_messages">0</div>
+            <div class="text-xs text-mono-300 font-semibold mt-2">Berhasil di-deliver ke nomor tujuan</div>
         </div>
 
         <!-- Pending Messages in Queue -->
-        <div class="mono-card p-6">
+        <div class="mono-card p-6 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Antrean Queue</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">⏳</div>
+                <span class="text-[11px] font-bold text-mono-400 uppercase tracking-wider font-mono">Antrean Queue</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">
+                    <i class="fa-solid fa-hourglass-half text-amber-400"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-200" x-text="stats.pending_messages">0</div>
-            <div class="text-xs text-mono-400 mt-1.5 font-medium">Diproses dengan anti-ban delay</div>
+            <div class="text-3xl font-extrabold text-mono-200 tabular-nums" x-text="stats.pending_messages">0</div>
+            <div class="text-xs text-mono-400 mt-2 font-medium">Diproses dengan proteksi delay</div>
         </div>
 
         <!-- Active API Keys -->
-        <div class="mono-card p-6">
+        <div class="mono-card p-6 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">API Keys</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">🔑</div>
+                <span class="text-[11px] font-bold text-mono-400 uppercase tracking-wider font-mono">API Keys</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">
+                    <i class="fa-solid fa-key text-mono-200"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50" x-text="stats.total_api_keys">0</div>
-            <div class="text-xs text-mono-400 mt-1.5 font-medium">Token aktif integrasi REST API</div>
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums" x-text="stats.total_api_keys">0</div>
+            <div class="text-xs text-mono-400 mt-2 font-medium">Token aktif integrasi REST API</div>
         </div>
     </div>
 
-    <!-- PACKAGE TIER & QUOTA SECTION (BELOW STATS CARDS) -->
+    <!-- 2. PACKAGE TIER & KUOTA SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <!-- Active Package Card -->
@@ -86,18 +94,19 @@
                         <div class="text-[10px] font-mono font-bold text-mono-400 uppercase tracking-widest">Paket Aktif Anda</div>
                         <div class="text-lg font-extrabold text-mono-50 mt-0.5">{{ $package->name }}</div>
                     </div>
-                    <div class="px-3 py-1.5 rounded-full text-[10px] font-bold bg-mono-50 text-mono-950 shadow-sm font-extrabold">
-                        {{ $package->badge ?? ($package->price == 0 ? 'Gratis' : 'Aktif') }}
+                    <div class="px-3 py-1.5 rounded-full text-[10px] font-bold bg-mono-50 text-mono-950 shadow-sm font-extrabold inline-flex items-center gap-1">
+                        <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
+                        <span>{{ $package->badge ?? ($package->price == 0 ? 'Gratis' : 'Aktif') }}</span>
                     </div>
                 </div>
                 @if($package->description)
                     <p class="text-xs text-mono-400 mb-4 font-medium leading-relaxed">{{ $package->description }}</p>
                 @endif
                 @if(!empty($package->benefits) && is_array($package->benefits))
-                    <ul class="space-y-1.5 mb-4">
+                    <ul class="space-y-2 mb-4">
                         @foreach($package->benefits as $benefit)
                             <li class="text-xs text-mono-300 flex items-start gap-2">
-                                <span class="text-mono-100 font-bold flex-shrink-0">✓</span>
+                                <i class="fa-solid fa-check text-mono-100 text-[11px] mt-0.5 flex-shrink-0"></i>
                                 <span class="leading-tight">{{ $benefit }}</span>
                             </li>
                         @endforeach
@@ -113,8 +122,9 @@
                         Rp {{ number_format($package->price, 0, ',', '.') }}<span class="text-mono-500">/bln</span>
                     @endif
                 </div>
-                <a href="{{ route('user.upgrade') }}" class="inline-flex items-center gap-1 text-[11px] font-extrabold text-mono-200 hover:text-white transition underline underline-offset-4">
-                    Upgrade Paket →
+                <a href="{{ route('user.upgrade') }}" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-mono-200 hover:text-white transition">
+                    <span>Upgrade Paket</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
         </div>
@@ -124,8 +134,9 @@
             <div>
                 <div class="flex items-center justify-between mb-5">
                     <div class="text-[10px] font-mono font-bold text-mono-400 uppercase tracking-widest">Kuota & Pemakaian Hari Ini</div>
-                    <a href="{{ route('user.upgrade') }}" class="text-[11px] font-bold text-mono-300 hover:text-white flex items-center gap-1 transition">
-                        <span>⭐ Lihat Semua Paket</span>
+                    <a href="{{ route('user.upgrade') }}" class="text-[11px] font-bold text-mono-300 hover:text-white flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+                        <span>Lihat Semua Paket</span>
                     </a>
                 </div>
 
@@ -137,9 +148,10 @@
                 <div class="mb-5">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-mono-200 flex items-center gap-2">
-                            <span>💬</span> Kuota Pesan Harian
+                            <i class="fa-solid fa-comments text-mono-400"></i>
+                            <span>Kuota Pesan Harian</span>
                         </span>
-                        <span class="text-xs font-mono font-bold text-mono-300">
+                        <span class="text-xs font-mono font-bold text-mono-300 tabular-nums">
                             <span class="{{ $msgPct >= 90 ? 'text-mono-50' : 'text-mono-300' }}">{{ number_format($todaySent, 0, ',', '.') }}</span>
                             <span class="text-mono-500"> / {{ number_format($dailyLimit, 0, ',', '.') }}</span>
                         </span>
@@ -148,10 +160,10 @@
                         <div class="h-full rounded-full transition-all duration-500 {{ $msgColor }}"
                              style="width: {{ $msgPct }}%"></div>
                     </div>
-                    <div class="flex items-center justify-between mt-1.5">
-                        <span class="text-[10px] text-mono-500 font-medium">Reset setiap pukul 00:00 WIB</span>
-                        <span class="text-[10px] font-bold {{ $remainingDaily <= 0 ? 'text-mono-200' : 'text-mono-400' }}">
-                            {{ $remainingDaily <= 0 ? '⚠ Kuota Habis' : number_format($remainingDaily, 0, ',', '.') . ' pesan tersisa' }}
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-[10px] text-mono-500 font-medium font-mono">Reset otomatis setiap pukul 00:00 WIB</span>
+                        <span class="text-[10px] font-bold {{ $remainingDaily <= 0 ? 'text-red-400' : 'text-mono-400' }}">
+                            {{ $remainingDaily <= 0 ? 'Kuota Habis' : number_format($remainingDaily, 0, ',', '.') . ' pesan tersisa' }}
                         </span>
                     </div>
                 </div>
@@ -164,9 +176,10 @@
                 <div class="mb-4">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs font-bold text-mono-200 flex items-center gap-2">
-                            <span>📱</span> Slot Perangkat WhatsApp
+                            <i class="fa-solid fa-mobile-screen-button text-mono-400"></i>
+                            <span>Slot Perangkat WhatsApp</span>
                         </span>
-                        <span class="text-xs font-mono font-bold text-mono-300">
+                        <span class="text-xs font-mono font-bold text-mono-300 tabular-nums">
                             <span class="{{ $devPct >= 100 ? 'text-mono-50' : 'text-mono-300' }}">{{ $devicesCount }}</span>
                             <span class="text-mono-500"> / {{ $maxDevices }}</span>
                         </span>
@@ -175,778 +188,241 @@
                         <div class="h-full rounded-full transition-all duration-500 {{ $devColor }}"
                              style="width: {{ $devPct }}%"></div>
                     </div>
-                    <div class="flex items-center justify-between mt-1.5">
+                    <div class="flex items-center justify-between mt-2">
                         <span class="text-[10px] text-mono-500 font-medium">Nomor WhatsApp yang terdaftar</span>
-                        <span class="text-[10px] font-bold {{ $devicesCount >= $maxDevices ? 'text-mono-200' : 'text-mono-400' }}">
-                            {{ $devicesCount >= $maxDevices ? '⚠ Slot Penuh' : ($maxDevices - $devicesCount) . ' slot tersisa' }}
+                        <span class="text-[10px] font-bold {{ $devicesCount >= $maxDevices ? 'text-red-400' : 'text-mono-400' }}">
+                            {{ $devicesCount >= $maxDevices ? 'Slot Penuh' : ($maxDevices - $devicesCount) . ' slot tersisa' }}
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Upgrade CTA if quota is near max -->
             @if($msgPct >= 80 || $devPct >= 100)
-                <div class="mt-2 p-3.5 bg-mono-950 border border-mono-700 rounded-2xl flex items-center justify-between gap-3">
+                <div class="mt-2 p-3.5 bg-mono-950 border border-mono-700 rounded-xl flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-xs font-bold text-mono-200">💡 Kuota Anda hampir habis</p>
+                        <p class="text-xs font-bold text-mono-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs"></i>
+                            <span>Kuota Anda hampir mencapai batas</span>
+                        </p>
                         <p class="text-[10px] text-mono-400 mt-0.5">Tingkatkan kuota pesan dan slot perangkat WhatsApp sekarang.</p>
                     </div>
-                    <a href="{{ route('user.upgrade') }}" class="px-4 py-2 mono-btn-secondary text-[11px] font-bold whitespace-nowrap shadow-sm">
-                        Upgrade Paket →
+                    <a href="{{ route('user.upgrade') }}" class="px-3.5 py-1.5 mono-btn-primary text-[11px] font-bold whitespace-nowrap shadow-sm inline-flex items-center gap-1.5">
+                        <span>Upgrade</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
                 </div>
             @endif
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="flex gap-2 p-1.5 bg-mono-900 border border-mono-700 rounded-2xl max-w-fit flex-wrap shadow-md">
-        <button @click="activeTab = 'send'" :class="activeTab === 'send' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white hover:bg-mono-800'" class="px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <span>💬</span> Kirim Pesan
-        </button>
-        <button @click="activeTab = 'devices'" :class="activeTab === 'devices' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white hover:bg-mono-800'" class="px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <span>📱</span> Perangkat Saya
-        </button>
-        <button @click="activeTab = 'api'" :class="activeTab === 'api' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white hover:bg-mono-800'" class="px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <span>🔑</span> API Key & SDK
-        </button>
-        <button @click="activeTab = 'history'" :class="activeTab === 'history' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white hover:bg-mono-800'" class="px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <span>📜</span> Riwayat Pesan
-        </button>
-    </div>
-
-    <!-- TAB 1: KIRIM PESAN -->
-    <div x-show="activeTab === 'send'" class="space-y-6" x-transition.opacity>
-        <div class="mono-card p-8 max-w-3xl">
-            <h3 class="text-base font-extrabold text-mono-50 mb-1 flex items-center gap-2">
-                <span>Form Pengiriman Pesan WhatsApp</span>
-            </h3>
-            <p class="text-xs text-mono-400 mb-6">Kirimkan pesan tunggal atau broadcast massal dengan proteksi Anti-Ban</p>
-
-            <!-- Mode Selector -->
-            <div class="flex gap-2 p-1 bg-mono-950 border border-mono-700 rounded-xl mb-5 max-w-xs">
-                <button @click="sendMode = 'single'" :class="sendMode === 'single' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="flex-1 py-1.5 rounded-lg text-xs transition">Pesan Tunggal</button>
-                <button @click="sendMode = 'bulk'" :class="sendMode === 'bulk' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="flex-1 py-1.5 rounded-lg text-xs transition">Massal (Bulk)</button>
-            </div>
-
-            <!-- Warm-up & Old Number Notice -->
-            <div class="p-4 bg-mono-900 border border-mono-700 rounded-2xl mb-6 space-y-2">
-                <div class="flex items-center gap-2 text-xs font-bold text-mono-100">
-                    <span>💡</span>
-                    <span>Rekomendasi Penting: Gunakan Nomor WhatsApp Lama (Aged Number)</span>
-                </div>
-                <p class="text-[11px] text-mono-300 leading-relaxed">
-                    Sangat disarankan menggunakan <strong>nomor WhatsApp lama yang sudah memiliki riwayat chat aktif</strong> agar pesan ke nomor baru/asing (seperti OTP atau notifikasi) tidak dibatasi oleh WhatsApp Server.
-                </p>
-                <div class="text-[11px] text-mono-400 leading-relaxed bg-mono-950 p-3 rounded-xl border border-mono-800 space-y-1 font-mono">
-                    <div class="text-mono-200 font-bold font-sans">🔥 Jika Menggunakan Nomor Baru / Perdana Baru:</div>
-                    <div>1. Lakukan <strong>Warm-up (Pemanasan)</strong> selama 2–4 minggu sebelum dipakai gateway intensif.</div>
-                    <div>2. Sering berinteraksi 2 arah (saling kirim chat & simpan kontak dengan teman/keluarga).</div>
-                    <div>3. Masuk ke beberapa grup WhatsApp aktif dan biarkan ada percakapan harian.</div>
-                </div>
-            </div>
-
-            <form @submit.prevent="submitMessage()" class="space-y-5 text-xs">
-                <div>
-                    <label class="block text-mono-300 font-bold mb-2">Pilih Perangkat WhatsApp Pengirim</label>
-                    <select x-model="form.device_id" required class="w-full mono-input px-4 py-3 text-mono-100 font-medium">
-                        <option value="">-- Pilih Perangkat WhatsApp --</option>
-                        <template x-for="d in devices" :key="d.id">
-                            <option :value="d.device_id" x-text="`${d.name} (${d.device_id}) [${d.status}]`"></option>
-                        </template>
-                    </select>
-                </div>
-
-                <div x-show="sendMode === 'single'">
-                    <label class="block text-mono-300 font-bold mb-2">Nomor Tujuan WhatsApp</label>
-                    <input type="text" x-model="form.to" placeholder="Contoh: 081234567890 atau 6281234567890" class="w-full mono-input px-4 py-3 font-mono">
-                </div>
-
-                <div x-show="sendMode === 'bulk'">
-                    <label class="block text-mono-300 font-bold mb-2">Daftar Nomor Tujuan (Satu nomor per baris)</label>
-                    <textarea x-model="form.recipients_raw" rows="3" placeholder="081234567890&#10;085123456789&#10;628987654321" class="w-full mono-input px-4 py-3 font-mono"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-mono-300 font-bold mb-2">Isi Pesan / Caption WhatsApp</label>
-                    <textarea x-model="form.message" rows="4" required placeholder="Tuliskan isi pesan Anda di sini..." class="w-full mono-input px-4 py-3 font-medium"></textarea>
-                </div>
-
-                <!-- Optional Image Attachment -->
-                <div class="p-4 bg-mono-950 rounded-2xl border border-mono-700 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-mono-300 font-bold text-xs flex items-center gap-1.5">
-                            <span>🖼️</span> Lampirkan Foto / Gambar <span class="text-mono-500 font-normal">(Opsional)</span>
-                        </label>
-                        <button type="button" x-show="form.image_preview" @click="clearImage()" class="text-red-400 hover:text-red-300 text-[11px] font-semibold">Hapus Foto</button>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row gap-3 items-start">
-                        <div class="flex-1 w-full">
-                            <input type="file" accept="image/*" @change="handleImageUpload($event)" class="w-full text-xs text-mono-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-mono-800 file:text-mono-200 hover:file:bg-mono-700 cursor-pointer">
-                            <p class="text-[11px] text-mono-500 mt-1">Format: JPG, PNG, WEBP (Maks 10MB)</p>
-                        </div>
-                        <template x-if="form.image_preview">
-                            <div class="w-16 h-16 rounded-xl border border-mono-700 overflow-hidden bg-mono-900 flex-shrink-0">
-                                <img :src="form.image_preview" class="w-full h-full object-cover">
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-5 pt-1">
-                    <div class="p-3.5 bg-mono-950 rounded-xl border border-mono-700">
-                        <label class="block text-mono-400 mb-1.5 font-semibold">Min Delay: <span class="text-mono-100 font-mono font-bold" x-text="form.min_delay + ' ms'"></span></label>
-                        <input type="range" min="500" max="5000" step="500" x-model="form.min_delay" class="w-full accent-white cursor-pointer">
-                    </div>
-                    <div class="p-3.5 bg-mono-950 rounded-xl border border-mono-700">
-                        <label class="block text-mono-400 mb-1.5 font-semibold">Max Delay: <span class="text-mono-100 font-mono font-bold" x-text="form.max_delay + ' ms'"></span></label>
-                        <input type="range" min="1000" max="8000" step="500" x-model="form.max_delay" class="w-full accent-white cursor-pointer">
-                    </div>
-                </div>
-
-                <button type="submit" :disabled="sending || isSuspended"
-                        :class="isSuspended ? 'bg-mono-800 text-mono-500 border border-mono-700 cursor-not-allowed' : 'mono-btn-primary'"
-                        class="w-full py-3.5 font-bold rounded-xl transition flex items-center justify-center gap-2 text-sm mt-2 shadow-md">
-                    <span x-text="isSuspended ? '⛔ Akun Ditangguhkan (Tidak Dapat Mengirim Pesan)' : (sending ? 'Memproses Pengiriman...' : 'Kirim Pesan Sekarang')"></span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- TAB 2: PERANGKAT SAYA -->
-    <div x-show="activeTab === 'devices'" class="space-y-6" x-transition.opacity>
-        <div class="mono-card p-8">
-            <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-                <div>
-                    <h3 class="text-base font-extrabold text-mono-50">Perangkat WhatsApp Terdaftar</h3>
-                    <p class="text-xs text-mono-400 mt-0.5">Tautkan nomor WhatsApp Anda dengan scan QR Code untuk mulai mengirim pesan</p>
-                </div>
-                <button @click="showAddDeviceModal = true" class="px-4 py-2.5 mono-btn-primary text-xs font-bold flex items-center gap-2 shadow-sm">
-                    <span>➕</span> Daftarkan Nomor Baru
-                </button>
-            </div>
-
-            <!-- Warm Up Alert -->
-            <div class="p-4 bg-mono-900 border border-mono-700 rounded-2xl mb-6 text-xs text-mono-300 space-y-1.5">
-                <div class="font-bold text-mono-50 flex items-center gap-1.5">
-                    <span>🛡️</span> Tips Keamanan & Anti-Ban Nomor:
-                </div>
-                <p class="text-[11px] text-mono-400 leading-relaxed">
-                    Prioritaskan menggunakan <strong>nomor yang sudah lama</strong> dan memiliki reputasi akun yang baik. Jika menggunakan nomor baru, lakukan <em>warm-up</em> (kirim pesan manual, simpan kontak, dan berinteraksi wajar) minimal 2–4 minggu sebelum digunakan untuk blast/broadcast massal.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <template x-for="d in devices" :key="d.id">
-                    <div class="bg-mono-950 border border-mono-700 p-5 rounded-2xl space-y-4 hover:border-mono-500 transition shadow-sm">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <h4 class="font-bold text-mono-50 text-sm" x-text="d.name"></h4>
-                                <p class="text-xs text-mono-400 font-mono mt-0.5" x-text="d.phone_number || '-'"></p>
-                            </div>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase shadow-sm"
-                                  :class="d.status === 'connected' ? 'bg-mono-50 text-mono-950 font-extrabold' : (d.status === 'pending' ? 'bg-mono-800 text-mono-200 border border-mono-600' : 'bg-mono-900 text-mono-400 border border-mono-700')"
-                                  x-text="d.status"></span>
-                        </div>
-
-                        <div class="pt-3 border-t border-mono-800 text-[11px] space-y-1 text-mono-400 font-mono">
-                            <div>Device ID: <span class="text-mono-200 font-semibold" x-text="d.device_id"></span></div>
-                            <div x-show="d.status === 'connected' && d.jid">JID: <span class="text-mono-200" x-text="d.jid"></span></div>
-                        </div>
-
-                        <div class="flex gap-2 pt-2">
-                            <button x-show="d.status !== 'connected'" @click="connectDevice(d)" class="flex-1 py-2.5 mono-btn-primary text-xs font-bold shadow-sm">
-                                🔌 Scan QR
-                            </button>
-                            <button x-show="d.status === 'connected'" @click="disconnectDevice(d)" class="flex-1 py-2.5 bg-mono-800 hover:bg-mono-700 border border-mono-600 text-mono-200 rounded-xl text-xs font-bold transition">
-                                Putuskan
-                            </button>
-                            <button @click="deleteDevice(d.id)" class="px-3 py-2.5 bg-mono-850 hover:bg-mono-800 border border-mono-700 rounded-xl text-xs text-mono-300 transition">
-                                🗑️
-                            </button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </div>
-
-    <!-- TAB 3: API KEY & DOKUMENTASI -->
-    <div x-show="activeTab === 'api'" class="space-y-6" x-transition.opacity>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 3. QUICK ACTION BENTO GRID -->
+    <div>
+        <div class="text-[10px] font-mono font-bold text-mono-400 uppercase tracking-widest mb-3">Aksi Cepat Menu WhatsApp</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            <!-- API Keys Management -->
-            <div class="mono-card p-7 space-y-5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-base font-bold text-mono-50">API Keys Akun Anda</h3>
-                        <p class="text-xs text-mono-400 mt-0.5">Gunakan key ini pada header <code>X-API-Key</code> aplikasi Anda</p>
+            <!-- Kirim Pesan Shortcut -->
+            <a href="{{ route('user.messages') }}" class="mono-card p-5 hover:border-mono-500 transition group flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-200 flex items-center justify-center text-base group-hover:scale-105 transition flex-shrink-0">
+                    <i class="fa-solid fa-paper-plane text-mono-100"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-mono-100 group-hover:text-white transition flex items-center gap-1">
+                        <span>Kirim Pesan</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </h4>
+                    <p class="text-[11px] text-mono-400 mt-1 leading-relaxed">Kirimkan pesan tunggal atau broadcast massal via WhatsApp.</p>
+                </div>
+            </a>
+
+            <!-- Perangkat Shortcut -->
+            <a href="{{ route('user.devices') }}" class="mono-card p-5 hover:border-mono-500 transition group flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-200 flex items-center justify-center text-base group-hover:scale-105 transition flex-shrink-0">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-mono-100 group-hover:text-white transition flex items-center gap-1">
+                        <span>Perangkat WhatsApp</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </h4>
+                    <p class="text-[11px] text-mono-400 mt-1 leading-relaxed">Scan QR code, hubungkan nomor baru & cek status koneksi.</p>
+                </div>
+            </a>
+
+            <!-- Riwayat Shortcut -->
+            <a href="{{ route('user.history') }}" class="mono-card p-5 hover:border-mono-500 transition group flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-200 flex items-center justify-center text-base group-hover:scale-105 transition flex-shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left text-mono-100"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-mono-100 group-hover:text-white transition flex items-center gap-1">
+                        <span>Riwayat Pesan</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </h4>
+                    <p class="text-[11px] text-mono-400 mt-1 leading-relaxed">Cek log pengiriman pesan terkirim, pending, atau gagal.</p>
+                </div>
+            </a>
+
+            <!-- API Keys Shortcut -->
+            <a href="{{ route('user.api-keys') }}" class="mono-card p-5 hover:border-mono-500 transition group flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-200 flex items-center justify-center text-base group-hover:scale-105 transition flex-shrink-0">
+                    <i class="fa-solid fa-key text-mono-100"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-mono-100 group-hover:text-white transition flex items-center gap-1">
+                        <span>API Key & SDK</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </h4>
+                    <p class="text-[11px] text-mono-400 mt-1 leading-relaxed">Generate token REST API & integrasikan dengan website Anda.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4. SIDE-BY-SIDE BENTO PANELS (Recent Messages & Connected Devices) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Left: Recent Messages Stream -->
+        <div class="mono-card p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-mono-400 text-xs"></i>
+                        <h3 class="text-xs font-bold text-mono-100 font-mono uppercase tracking-wider">Aktivitas Pesan Terakhir</h3>
                     </div>
-                    <button @click="createApiKey()" class="px-4 py-2 mono-btn-primary text-xs font-bold shadow-sm">
-                        ✨ Generate Key Baru
-                    </button>
+                    <a href="{{ route('user.history') }}" class="text-[11px] font-bold text-mono-400 hover:text-white transition inline-flex items-center gap-1">
+                        <span>Lihat Semua</span>
+                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </a>
                 </div>
 
-                <div class="space-y-3">
-                    <template x-for="k in apiKeys" :key="k.id">
-                        <div class="p-4 bg-mono-950 border border-mono-700 rounded-2xl space-y-2.5 shadow-sm">
-                            <div class="flex justify-between items-center text-xs">
-                                <span class="font-bold text-mono-100" x-text="k.name"></span>
-                                <button @click="revokeApiKey(k.id)" class="text-mono-400 hover:text-white font-semibold text-[11px] underline">Revoke</button>
+                <div class="divide-y divide-mono-800/60">
+                    @forelse($recentMessages as $msg)
+                        <div class="py-3 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-mono-800 border border-mono-700 flex items-center justify-center text-mono-300 flex-shrink-0">
+                                    <i class="fa-regular fa-comment-dots text-xs"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-mono font-bold text-mono-100 truncate">{{ $msg->to }}</div>
+                                    <div class="text-[11px] text-mono-400 truncate max-w-[130px] sm:max-w-xs">{{ Str::limit($msg->message, 45) }}</div>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <input type="text" readonly :value="k.key" class="w-full mono-input px-3 py-2 text-xs font-mono text-mono-200 select-all">
-                                <button @click="copyText(k.key)" class="px-3.5 py-2 mono-btn-secondary text-xs font-semibold">Copy</button>
+                            <div class="text-right flex-shrink-0 ml-3">
+                                @if($msg->status === 'sent')
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-check text-[9px]"></i> Terkirim
+                                    </span>
+                                @elseif(in_array($msg->status, ['pending', 'processing']))
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-hourglass-half text-[9px]"></i> Antrean
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-xmark text-[9px]"></i> Gagal
+                                    </span>
+                                @endif
+                                <div class="text-[10px] text-mono-500 font-mono mt-0.5 tabular-nums">
+                                    {{ $msg->created_at->timezone('Asia/Jakarta')->format('d/m H:i') }} WIB
+                                </div>
                             </div>
                         </div>
-                    </template>
+                    @empty
+                        <div class="py-8 text-center text-mono-500 text-xs">
+                            <i class="fa-regular fa-message text-2xl mb-2 block text-mono-600"></i>
+                            <span>Belum ada pesan yang dikirimkan.</span>
+                        </div>
+                    @endforelse
                 </div>
             </div>
 
-            <!-- Integration Banner Card -->
-            <div class="mono-card p-7 flex flex-col justify-between space-y-6">
-                <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-mono-800 text-mono-200 border border-mono-700 text-[11px] font-bold uppercase mb-3">
-                        📖 Developer SDK & Docs
-                    </div>
-                    <h3 class="text-lg font-extrabold text-mono-50">Dokumentasi REST API Lengkap</h3>
-                    <p class="text-xs text-mono-400 mt-2 leading-relaxed font-medium">
-                        Pelajari panduan integrasi instan untuk <strong>Laravel</strong>, <strong>Node.js</strong>, <strong>PHP</strong>, dan <strong>Python</strong> dengan payload JSON lengkap & proteksi Anti-Ban.
-                    </p>
-                </div>
-                <a href="{{ route('docs') }}" class="px-5 py-3 mono-btn-primary rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
-                    <span>Buka Dokumentasi REST API</span> →
+            <div class="pt-4 border-t border-mono-800 mt-4">
+                <a href="{{ route('user.messages') }}" class="w-full py-2.5 px-4 rounded-xl mono-btn-primary font-bold text-xs text-center flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    <span>Kirim Pesan Sekarang</span>
                 </a>
             </div>
-
         </div>
-    </div>
 
-    <!-- TAB 4: RIWAYAT PESAN SAYA -->
-    <div x-show="activeTab === 'history'" class="space-y-6" x-transition.opacity>
-        <div class="mono-card p-8">
-            <h3 class="text-base font-bold text-mono-50 mb-4">Riwayat Pengiriman Pesan Saya</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="text-mono-400 border-b border-mono-700 pb-3 font-mono">
-                        <tr>
-                            <th class="pb-3.5 font-bold uppercase tracking-wider">TUJUAN</th>
-                            <th class="pb-3.5 font-bold uppercase tracking-wider">ISI PESAN</th>
-                            <th class="pb-3.5 font-bold uppercase tracking-wider">DEVICE</th>
-                            <th class="pb-3.5 font-bold uppercase tracking-wider">STATUS</th>
-                            <th class="pb-3.5 font-bold uppercase tracking-wider">WAKTU</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-mono-800">
-                        <tr x-show="loadingMessages">
-                            <td colspan="5" class="py-10 text-center">
-                                <div class="inline-flex items-center gap-2 text-mono-400 font-mono text-xs">
-                                    <svg class="animate-spin h-4 w-4 text-mono-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                    </svg>
-                                    <span>Memuat riwayat pesan...</span>
+        <!-- Right: Connected Devices -->
+        <div class="mono-card p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-emerald-400 text-sm"></i>
+                        <h3 class="text-xs font-bold text-mono-100 font-mono uppercase tracking-wider">Perangkat WhatsApp Aktif</h3>
+                    </div>
+                    <a href="{{ route('user.devices') }}" class="text-[11px] font-bold text-mono-400 hover:text-white transition inline-flex items-center gap-1">
+                        <span>Kelola Perangkat</span>
+                        <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </a>
+                </div>
+
+                <div class="divide-y divide-mono-800/60">
+                    @forelse($devices as $dev)
+                        <div class="py-3 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-mono-800 border border-mono-700 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                                    <i class="fa-solid fa-mobile-screen-button"></i>
                                 </div>
-                            </td>
-                        </tr>
-                        <template x-for="m in messages" :key="m.id" x-show="!loadingMessages">
-                            <tr class="hover:bg-mono-900 transition">
-                                <td class="py-3.5 font-mono font-bold text-mono-100" x-text="m.to"></td>
-                                <td class="py-3.5 max-w-xs truncate text-mono-300">
-                                    <div class="flex items-center gap-1.5">
-                                        <span x-show="m.media_url" class="px-1.5 py-0.5 rounded bg-mono-800 border border-mono-700 text-[10px] text-mono-300">🖼️ Foto</span>
-                                        <span class="truncate" x-text="m.message"></span>
-                                    </div>
-                                </td>
-                                <td class="py-3.5 font-mono text-[11px] text-mono-400" x-text="m.device_id"></td>
-                                <td class="py-3.5">
-                                    <div class="flex flex-col gap-1 max-w-[260px]">
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase w-max shadow-sm"
-                                              :class="m.status === 'sent' ? 'bg-mono-50 text-mono-950 font-extrabold' : (m.status === 'pending' ? 'bg-mono-800 text-mono-200 border border-mono-700' : 'bg-red-950/80 text-red-300 border border-red-800')"
-                                              x-text="m.status"></span>
-                                        <span x-show="m.status === 'failed'" 
-                                              class="text-[10px] text-red-400 font-sans leading-snug mt-0.5" 
-                                              x-text="formatErrorMessage(m.error_message)"></span>
-                                    </div>
-                                </td>
-                                <td class="py-3.5 text-mono-400 font-mono text-[11px]" x-text="new Date(m.created_at).toLocaleTimeString('id-ID')"></td>
-                            </tr>
-                        </template>
-                        <tr x-show="!loadingMessages && messages.length === 0">
-                            <td colspan="5" class="py-8 text-center text-mono-500 font-medium">
-                                Belum ada riwayat pengiriman pesan.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-mono-100 truncate max-w-[130px] sm:max-w-xs">{{ $dev->name }}</div>
+                                    <div class="text-[11px] text-mono-400 font-mono truncate max-w-[130px] sm:max-w-xs">{{ $dev->phone_number ?? 'Belum ada nomor' }}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                @if($dev->status === 'connected')
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-circle text-[7px] text-emerald-400 animate-pulse"></i> Terhubung
+                                    </span>
+                                @elseif($dev->status === 'scan_qr')
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-qrcode text-[9px]"></i> Perlu Scan
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-mono-800 text-mono-400 border border-mono-700 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-power-off text-[9px]"></i> Terputus
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="py-8 text-center text-mono-500 text-xs">
+                            <i class="fa-solid fa-mobile-screen-button text-2xl mb-2 block text-mono-600"></i>
+                            <span>Belum ada perangkat yang ditambahkan.</span>
+                        </div>
+                    @endforelse
+                </div>
             </div>
 
-            <!-- Pagination Bar -->
-            <div x-show="messagesPagination.total > 0" class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-mono-800 text-xs">
-                <div class="text-mono-400 font-mono text-[11px]">
-                    Menampilkan <span class="text-mono-200 font-bold" x-text="messagesPagination.from || 0"></span> - <span class="text-mono-200 font-bold" x-text="messagesPagination.to || 0"></span> dari <span class="text-mono-100 font-bold" x-text="messagesPagination.total"></span> pesan
-                </div>
-                
-                <div class="flex items-center gap-1.5 font-mono">
-                    <button @click="loadMessages(messagesPagination.current_page - 1)" 
-                            :disabled="messagesPagination.current_page <= 1"
-                            class="px-3 py-1.5 rounded-xl border border-mono-700 bg-mono-900 text-mono-200 hover:bg-mono-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold shadow-sm">
-                        ← Sebelumnya
-                    </button>
-                    
-                    <span class="px-3 py-1.5 text-mono-400 font-bold text-[11px]">
-                        Halaman <span class="text-mono-50" x-text="messagesPagination.current_page"></span> / <span x-text="messagesPagination.last_page"></span>
-                    </span>
-
-                    <button @click="loadMessages(messagesPagination.current_page + 1)" 
-                            :disabled="messagesPagination.current_page >= messagesPagination.last_page"
-                            class="px-3 py-1.5 rounded-xl border border-mono-700 bg-mono-900 text-mono-200 hover:bg-mono-800 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-bold shadow-sm">
-                        Berikutnya →
-                    </button>
-                </div>
+            <div class="pt-4 border-t border-mono-800 mt-4">
+                <a href="{{ route('user.devices') }}" class="w-full py-2.5 px-4 rounded-xl mono-btn-secondary font-bold text-xs text-center flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Tambah & Hubungkan Perangkat WhatsApp</span>
+                </a>
             </div>
         </div>
     </div>
-
-    <!-- Modal Tambah Device -->
-    <div x-show="showAddDeviceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" x-transition.opacity>
-        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-7 max-w-md w-full shadow-2xl" @click.outside="showAddDeviceModal = false">
-            <h3 class="text-base font-extrabold text-mono-50 mb-4">➕ Daftarkan Nomor WhatsApp Baru</h3>
-            <form @submit.prevent="saveDevice()" class="space-y-4 text-xs">
-                <div>
-                    <label class="block text-mono-300 font-bold mb-1.5">Nama Device / Label</label>
-                    <input type="text" x-model="newDevice.name" required placeholder="Contoh: CS WhatsApp Utama" class="w-full mono-input px-4 py-2.5 font-medium">
-                </div>
-                <div>
-                    <label class="block text-mono-300 font-bold mb-1.5">Nomor Telepon</label>
-                    <input type="text" x-model="newDevice.phone_number" required placeholder="Contoh: 6281234567890" class="w-full mono-input px-4 py-2.5 font-mono">
-                </div>
-                <div class="flex gap-3 pt-3">
-                    <button type="button" @click="showAddDeviceModal = false" class="flex-1 py-2.5 mono-btn-secondary text-xs">Batal</button>
-                    <button type="submit" class="flex-1 py-2.5 mono-btn-primary text-xs shadow-sm">Daftarkan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal QR Code Scanner -->
-    <div x-show="showQrModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50" x-transition.opacity>
-        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-7 max-w-sm w-full text-center shadow-2xl" @click.outside="showQrModal = false">
-            <h3 class="text-base font-extrabold text-mono-50 mb-2">📷 Scan QR Code WhatsApp</h3>
-            <p class="text-xs text-mono-400 mb-5 font-medium" x-text="qrMessage"></p>
-            <div id="qrcode-container" class="bg-white p-4 rounded-2xl flex items-center justify-center max-w-[220px] mx-auto min-h-[220px] shadow-lg"></div>
-            <button @click="showQrModal = false" class="mt-6 w-full py-2.5 mono-btn-secondary text-xs font-bold">Tutup</button>
-        </div>
-    </div>
-
 </div>
 
 <script>
-    function userApp() {
+    function userDashboardApp() {
         return {
-            activeTab: 'send',
-            sendMode: 'single',
-            sending: false,
-            isSuspended: {{ auth()->user()->isSuspended() ? 'true' : 'false' }},
-            showAddDeviceModal: false,
-            showQrModal: false,
-            qrMessage: 'Menyiapkan QR Code...',
-            connectingDeviceId: null,
-            stats: { total_devices: 0, connected_dev: 0, total_messages: 0, sent_messages: 0, pending_messages: 0, total_api_keys: 0 },
-            devices: [],
-            messages: [],
-            messagesPagination: { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 },
-            loadingMessages: false,
-            apiKeys: [],
-            form: { device_id: '', to: '', recipients_raw: '', message: '', image_file: null, image_preview: null, min_delay: 1000, max_delay: 3000 },
-            newDevice: { name: '', phone_number: '' },
-
-            handleImageUpload(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    if (file.size > 10 * 1024 * 1024) {
-                        AppSwal.warning('Ukuran Terlalu Besar', 'Maksimal ukuran foto adalah 10MB.');
-                        event.target.value = '';
-                        return;
-                    }
-                    this.form.image_file = file;
-                    this.form.image_preview = URL.createObjectURL(file);
-                }
+            stats: {
+                total_devices: {{ $devicesCount }},
+                connected_dev: {{ $devices->where('status', 'connected')->count() }},
+                sent_messages: {{ $todaySent }},
+                pending_messages: 0,
+                total_api_keys: {{ $user->apiKeys()->count() }},
             },
-
-            clearImage() {
-                this.form.image_file = null;
-                this.form.image_preview = null;
-            },
-
             async initApp() {
-                this.loadStats();
-                this.loadDevices();
-                this.loadMessages();
-                this.loadApiKeys();
-
-                setInterval(() => {
-                    this.loadDevices();
-                    this.loadStats();
-                }, 3000);
-            },
-
-            async loadStats() {
                 try {
-                    let res = await fetch('/user/api/stats');
-                    let json = await res.json();
-                    if (json.success) this.stats = json.data;
-                } catch(e) {}
-            },
-
-            async loadDevices() {
-                try {
-                    let res = await fetch('/api/devices');
-                    let json = await res.json();
-                    if (json.success) {
-                        this.devices = json.data;
-                        if (this.devices.length > 0 && !this.form.device_id) {
-                            this.form.device_id = this.devices[0].device_id;
-                        }
-                    }
-                } catch(e) {}
-            },
-
-            getCsrfToken() {
-                return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            },
-
-            async loadMessages(page = 1) {
-                this.loadingMessages = true;
-                try {
-                    let res = await fetch(`/api/messages?page=${page}&per_page=10`, {
-                        headers: { 'Accept': 'application/json' }
-                    });
+                    let res = await fetch("{{ route('user.stats') }}");
                     let json = await res.json();
                     if (json.success && json.data) {
-                        let paginated = json.data;
-                        this.messages = paginated.data || [];
-                        this.messagesPagination = {
-                            current_page: paginated.current_page || 1,
-                            last_page: paginated.last_page || 1,
-                            total: paginated.total || 0,
-                            from: paginated.from || 0,
-                            to: paginated.to || 0,
-                        };
+                        this.stats = json.data;
                     }
                 } catch(e) {
-                } finally {
-                    this.loadingMessages = false;
+                    console.error("Gagal load stats", e);
                 }
-            },
-
-            async loadApiKeys() {
-                try {
-                    let res = await fetch('/api/api-keys', {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    let json = await res.json();
-                    if (json.success) this.apiKeys = json.data;
-                } catch(e) {}
-            },
-
-            async submitMessage() {
-                if (!this.form.device_id) {
-                    AppSwal.warning('Pilih Perangkat', 'Silakan pilih perangkat WhatsApp pengirim terlebih dahulu.');
-                    return;
-                }
-                this.sending = true;
-                AppSwal.loading('Memproses Pengiriman...', 'Mendaftarkan pesan ke antrean delivery queue...');
-
-                try {
-                    let url = this.sendMode === 'single' ? '/api/messages/send' : '/api/messages/send-bulk';
-                    
-                    let formData = new FormData();
-                    formData.append('device_id', this.form.device_id);
-                    formData.append('message', this.form.message);
-                    formData.append('min_delay', this.form.min_delay);
-                    formData.append('max_delay', this.form.max_delay);
-
-                    if (this.sendMode === 'single') {
-                        formData.append('to', this.form.to);
-                    } else {
-                        let recipients = this.form.recipients_raw.split('\n').map(s=>s.trim()).filter(Boolean);
-                        recipients.forEach((r, idx) => formData.append(`recipients[${idx}]`, r));
-                    }
-
-                    if (this.form.image_file) {
-                        formData.append('image', this.form.image_file);
-                    }
-
-                    let res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        },
-                        body: formData
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        AppSwal.toastSuccess('Pesan' + (this.form.image_file ? ' & foto' : '') + ' berhasil masuk antrean!');
-                        this.form.message = '';
-                        this.form.to = '';
-                        this.form.recipients_raw = '';
-                        this.clearImage();
-                        this.loadMessages();
-                        this.loadStats();
-                    } else {
-                        AppSwal.error('Gagal Mengirim', json.message || 'Terjadi kesalahan saat memproses.');
-                    }
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.error('Kesalahan Jaringan', 'Gagal terhubung ke server gateway.');
-                } finally {
-                    this.sending = false;
-                }
-            },
-
-            async saveDevice() {
-                if (!this.newDevice.name) {
-                    AppSwal.warning('Input Kurang', 'Nama perangkat wajib diisi.');
-                    return;
-                }
-                AppSwal.loading('Mendaftarkan Perangkat...', 'Menghubungkan device ke sistem...');
-
-                try {
-                    let res = await fetch('/api/devices', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        },
-                        body: JSON.stringify(this.newDevice)
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        this.showAddDeviceModal = false;
-                        this.newDevice = { name: '', phone_number: '' };
-                        AppSwal.toastSuccess('Perangkat WhatsApp berhasil ditambahkan!');
-                        this.loadDevices();
-                        this.loadStats();
-                    } else {
-                        AppSwal.error('Gagal', json.message || 'Gagal menambahkan perangkat.');
-                    }
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.error('Error', 'Terjadi kesalahan jaringan.');
-                }
-            },
-
-            async connectDevice(device) {
-                this.connectingDeviceId = device.id;
-                this.showQrModal = true;
-                this.qrMessage = 'Menyiapkan QR Code WhatsApp...';
-                this.$nextTick(() => {
-                    let el = document.getElementById('qrcode-container');
-                    if (el) el.innerHTML = '';
-                });
-
-                try {
-                    let res = await fetch(`/api/devices/${device.id}/connect`, { 
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        }
-                    });
-                    let json = await res.json();
-                    if (json.success) {
-                        this.qrMessage = json.message || 'Buka WhatsApp di HP > Perangkat Tertaut > Scan QR Code:';
-                        if (json.data && json.data.qr_code) {
-                            this.$nextTick(() => {
-                                let el = document.getElementById('qrcode-container');
-                                if (el) {
-                                    el.innerHTML = '';
-                                    new QRCode(el, { text: json.data.qr_code, width: 200, height: 200 });
-                                }
-                            });
-                        }
-                        this.loadDevices();
-                    } else {
-                        this.qrMessage = json.message || 'Gagal memuat QR Code. Pastikan service WhatsApp aktif.';
-                    }
-                } catch(e) {
-                    this.qrMessage = 'Terjadi gangguan koneksi ke server.';
-                }
-            },
-
-            async disconnectDevice(device) {
-                const confirmed = await AppSwal.confirm(
-                    `Putuskan Sesi WhatsApp?`,
-                    `Perangkat ${device.name} (${device.phone_number || device.device_id}) akan logout dari WhatsApp.`,
-                    'Ya, Putuskan Sesi',
-                    true
-                );
-                if (!confirmed) return;
-
-                AppSwal.loading('Memutuskan Sesi...', 'Mengirim sinyal logout ke WhatsApp engine...');
-                try {
-                    let res = await fetch(`/api/devices/${device.id}/disconnect`, { 
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        }
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        AppSwal.toastSuccess('Sesi WhatsApp berhasil diputuskan.');
-                    } else {
-                        AppSwal.toastError(json.message || 'Gagal memutuskan sesi.');
-                    }
-                    this.loadDevices();
-                    this.loadStats();
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.toastError('Gagal menghubungi server.');
-                }
-            },
-
-            async deleteDevice(id) {
-                const confirmed = await AppSwal.confirm(
-                    'Hapus Perangkat?',
-                    'Perangkat ini akan dihapus dari akun Anda secara permanen.',
-                    'Ya, Hapus',
-                    true
-                );
-                if (!confirmed) return;
-
-                AppSwal.loading('Menghapus Perangkat...', 'Mohon tunggu sebentar...');
-                try {
-                    let res = await fetch(`/api/devices/${id}`, { 
-                        method: 'DELETE',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        }
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        AppSwal.toastSuccess('Perangkat berhasil dihapus.');
-                    } else {
-                        AppSwal.toastError(json.message || 'Gagal menghapus perangkat.');
-                    }
-                    this.loadDevices();
-                    this.loadStats();
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.toastError('Gagal menghubungi server.');
-                }
-            },
-
-            async createApiKey() {
-                const { value: keyName } = await CustomSwal.fire({
-                    title: 'Generate API Key Baru',
-                    text: 'Beri label/nama untuk API Key ini (misal: "Aplikasi Toko Online"):',
-                    input: 'text',
-                    inputPlaceholder: 'Contoh: Laravel Backend Server',
-                    showCancelButton: true,
-                    confirmButtonText: 'Generate Key',
-                    cancelButtonText: 'Batal',
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'Nama API Key tidak boleh kosong!';
-                        }
-                    }
-                });
-
-                if (!keyName) return;
-
-                AppSwal.loading('Membuat API Key...', 'Men-generate token rahasia...');
-                try {
-                    let res = await fetch('/api/api-keys', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        },
-                        body: JSON.stringify({ name: keyName })
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        AppSwal.toastSuccess('API Key baru berhasil digenerate!');
-                        this.loadApiKeys();
-                        this.loadStats();
-                    } else {
-                        AppSwal.error('Gagal', json.message || 'Gagal membuat API Key.');
-                    }
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.error('Error', 'Terjadi kesalahan jaringan.');
-                }
-            },
-
-            async revokeApiKey(id) {
-                const confirmed = await AppSwal.confirm(
-                    'Revoke API Key?',
-                    'Aplikasi yang menggunakan API Key ini tidak akan dapat mengakses endpoint lagi.',
-                    'Ya, Revoke Key',
-                    true
-                );
-                if (!confirmed) return;
-
-                AppSwal.loading('Merevoke API Key...', 'Mematikan akses token...');
-                try {
-                    let res = await fetch(`/api/api-keys/${id}/revoke`, { 
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrfToken()
-                        }
-                    });
-                    let json = await res.json();
-                    AppSwal.close();
-
-                    if (json.success) {
-                        AppSwal.toastSuccess('API Key berhasil dinonaktifkan / direvoke.');
-                    } else {
-                        AppSwal.toastError(json.message || 'Gagal merevoke key.');
-                    }
-                    this.loadApiKeys();
-                    this.loadStats();
-                } catch(e) {
-                    AppSwal.close();
-                    AppSwal.toastError('Gagal menghubungi server.');
-                }
-            },
-
-            formatErrorMessage(msg) {
-                if (!msg) return 'Pengiriman pesan gagal.';
-                if (msg.includes('463')) {
-                    return 'WhatsApp Server membatasi chat ke nomor ini (Error 463). Pastikan nomor tujuan pernah membalas chat / simpan nomor di kontak HP pengirim.';
-                }
-                if (msg.includes('no LID found') || msg.includes('tidak terdaftar')) {
-                    return 'Nomor tidak terdaftar di WhatsApp atau salah format.';
-                }
-                if (msg.includes('attempted too many times') || msg.includes('Jobs\\')) {
-                    return 'Gagal terkirim: Terjadi antrean padat / timeout saat menghubungi WhatsApp.';
-                }
-                // Jika pesan error di luar kondisi di atas, tampilkan langsung pesan aslinya
-                return msg;
-            },
-
-            copyText(text) {
-                navigator.clipboard.writeText(text);
-                AppSwal.toastSuccess('API Key disalin ke clipboard!');
             }
         }
     }

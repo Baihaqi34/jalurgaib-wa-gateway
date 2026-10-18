@@ -100,6 +100,7 @@
       transition: background-color 0.25s ease, color 0.25s ease;
     }
 
+    /* Texture background */
     .bg-grid {
       background-image: radial-gradient(var(--border-subtle) 1px, transparent 1px);
       background-size: 24px 24px;
@@ -112,6 +113,7 @@
       padding: 0 24px;
     }
 
+    /* Monochromatic Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -154,17 +156,17 @@
 
     .btn-ghost {
       background: transparent;
-      color: var(--text-primary);
-      border-color: var(--border-subtle);
+      color: var(--text-secondary);
+      border: 1px solid transparent;
     }
     .btn-ghost:hover {
-      background-color: var(--bg-surface);
-      border-color: var(--border-medium);
+      color: var(--text-primary);
+      background-color: var(--bg-surface-elevated);
     }
 
     .btn-sm {
-      padding: 7px 14px;
-      font-size: 0.825rem;
+      padding: 8px 16px;
+      font-size: 0.85rem;
       border-radius: var(--radius-sm);
     }
 
@@ -174,19 +176,22 @@
       pointer-events: none;
     }
 
+    /* Badges */
     .mono-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 14px;
+      border-radius: 999px;
       background-color: var(--tint-badge);
       color: var(--text-primary);
       border: 1px solid var(--border-subtle);
-      border-radius: 100px;
-      font-size: 0.775rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      letter-spacing: 0.03em;
+      margin-bottom: 20px;
     }
 
     .mono-badge-dot {
@@ -194,49 +199,55 @@
       height: 7px;
       border-radius: 50%;
       background-color: var(--text-primary);
-      animation: pulse-dot 2s infinite ease-in-out;
+      animation: pulse 2s infinite ease-in-out;
     }
 
-    @keyframes pulse-dot {
+    @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(0.85); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
 
+    /* Navbar */
     .navbar {
       position: sticky;
       top: 0;
       z-index: 1000;
-      background-color: var(--bg-body);
+      background-color: var(--bg-surface);
       border-bottom: 1px solid var(--border-subtle);
-      padding: 14px 0;
       backdrop-filter: blur(12px);
-      transition: all 0.25s ease;
+      transition: background-color 0.25s, border-color 0.25s;
     }
 
     .navbar-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: 72px;
     }
 
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       text-decoration: none;
       color: var(--text-primary);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
     }
 
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      background-color: transparent;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background-color: var(--text-primary);
+      color: var(--bg-surface);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 3px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1.05rem;
       overflow: hidden;
     }
 
@@ -244,35 +255,23 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      transition: filter 0.25s ease;
-      filter: brightness(0); /* Black in light mode */
-    }
-
-    [data-theme="dark"] .jalurgaib-logo,
-    html.dark .jalurgaib-logo,
-    .dark .jalurgaib-logo {
-      filter: brightness(0) invert(1); /* White in dark mode */
     }
 
     .brand-name {
-      font-weight: 800;
-      font-size: 1.2rem;
-      letter-spacing: -0.03em;
-      color: var(--text-primary);
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
     .brand-tag {
-      font-size: 0.7rem;
-      font-weight: 700;
       font-family: var(--font-mono);
-      color: var(--text-secondary);
-      background-color: var(--bg-surface-elevated);
+      font-size: 0.65rem;
+      font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
+      background-color: var(--tint-badge);
       border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
     }
 
     .nav-links {
@@ -285,9 +284,9 @@
     .nav-links a {
       text-decoration: none;
       color: var(--text-secondary);
+      font-size: 0.9rem;
       font-weight: 600;
-      font-size: 0.875rem;
-      transition: color 0.2s;
+      transition: color 0.15s ease;
     }
 
     .nav-links a:hover {
@@ -297,37 +296,38 @@
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .theme-toggle-btn {
-      background: var(--bg-surface);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
+      background: var(--bg-surface-elevated);
       color: var(--text-primary);
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       transition: all 0.2s;
     }
     .theme-toggle-btn:hover {
       border-color: var(--border-medium);
+      transform: scale(1.05);
     }
 
-    /* Hero */
+    /* Hero Section */
     .hero {
-      padding: 75px 0 90px;
+      padding: 85px 0 65px;
       position: relative;
     }
 
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 48px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 50px;
       align-items: center;
     }
 
@@ -337,37 +337,37 @@
       line-height: 1.12;
       letter-spacing: -0.04em;
       color: var(--text-primary);
-      margin-top: 18px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
-    .hero-title .underline-text {
+    .underline-text {
       text-decoration: underline;
-      text-decoration-thickness: 3px;
+      text-decoration-thickness: 4px;
       text-underline-offset: 6px;
+      text-decoration-color: var(--border-focus);
     }
 
     .hero-desc {
-      font-size: 1.1rem;
+      font-size: 1.125rem;
       color: var(--text-secondary);
-      margin-bottom: 30px;
-      max-width: 560px;
-      font-weight: 400;
+      line-height: 1.7;
+      margin-bottom: 34px;
+      max-width: 580px;
     }
 
     .hero-buttons {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 14px;
-      flex-wrap: wrap;
+      margin-bottom: 40px;
     }
 
     .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-top: 44px;
-      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding-top: 28px;
       border-top: 1px solid var(--border-subtle);
     }
 
@@ -377,120 +377,114 @@
     }
 
     .stat-val {
-      font-size: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 1.45rem;
       font-weight: 800;
       color: var(--text-primary);
-      font-family: var(--font-mono);
     }
 
     .stat-lbl {
       font-size: 0.75rem;
       color: var(--text-muted);
-      font-weight: 600;
-      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    /* Safe Preview Sandbox */
+    /* Simulator Interactive Box */
     .simulator-container {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-xl);
-      padding: 22px;
+      padding: 24px;
       box-shadow: var(--shadow-lg);
+      position: relative;
     }
 
     .sim-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 14px;
       margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .sim-status-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.775rem;
       font-family: var(--font-mono);
-      font-weight: 600;
-      color: var(--text-secondary);
+      font-size: 0.725rem;
+      color: var(--text-primary);
+      font-weight: 700;
     }
 
     .sim-tabs {
       display: flex;
-      gap: 6px;
-      background-color: var(--bg-surface-elevated);
-      padding: 4px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 14px;
     }
 
     .sim-tab-btn {
-      flex: 1;
-      padding: 7px 10px;
-      font-size: 0.775rem;
-      font-weight: 700;
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
+      padding: 6px 14px;
       border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.2s;
       font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
     .sim-tab-btn.active {
-      background-color: var(--bg-surface);
-      color: var(--text-primary);
-      box-shadow: var(--shadow-sm);
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border-color: var(--btn-primary-bg);
     }
 
     .preview-box {
       background-color: var(--code-bg);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
       color: var(--code-text);
-      max-height: 240px;
-      overflow-y: auto;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
       line-height: 1.55;
+      overflow-x: auto;
+      border: 1px solid var(--border-subtle);
+      max-height: 250px;
+      white-space: pre;
     }
 
     .safe-notice {
       display: flex;
       align-items: center;
       gap: 8px;
-      background-color: var(--bg-surface-elevated);
-      border: 1px solid var(--border-subtle);
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
+      font-size: 0.725rem;
+      color: var(--text-muted);
       margin-top: 14px;
-      font-size: 0.775rem;
-      color: var(--text-secondary);
     }
 
+    /* Section Components */
     .section-padding {
-      padding: 90px 0;
+      padding: 85px 0;
     }
 
     .section-header {
       text-align: center;
-      max-width: 740px;
+      max-width: 680px;
       margin: 0 auto 55px;
     }
 
     .section-tag {
-      font-size: 0.775rem;
-      font-weight: 800;
       font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
+      font-size: 0.75rem;
+      font-weight: 700;
       color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
       margin-bottom: 10px;
       display: inline-block;
     }
@@ -510,6 +504,7 @@
       font-weight: 400;
     }
 
+    /* Features Grid */
     .features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -577,6 +572,7 @@
       border: 1px solid var(--border-subtle);
     }
 
+    /* Architecture Visualizer */
     .arch-wrapper {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -635,7 +631,7 @@
       line-height: 1.45;
     }
 
-    /* Pricing */
+    /* Pricing Tiers (SaaS Cloud Hosted - Static Showcase) */
     .pricing-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -655,10 +651,36 @@
       transition: all 0.2s;
     }
 
+    .price-card:hover {
+      border-color: var(--border-medium);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
     .price-card.active-plan {
       border-color: var(--border-focus);
       background-color: var(--bg-surface);
       box-shadow: var(--shadow-lg);
+    }
+
+    .price-card.popular-plan {
+      border: 2px solid var(--border-focus);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .popular-ribbon {
+      position: absolute;
+      top: -12px;
+      right: 24px;
+      background-color: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border-subtle);
     }
 
     .price-header {
@@ -666,7 +688,7 @@
     }
 
     .price-tier-name {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: var(--text-primary);
       margin-bottom: 4px;
@@ -675,6 +697,7 @@
     .price-tier-sub {
       font-size: 0.8rem;
       color: var(--text-muted);
+      line-height: 1.5;
     }
 
     .price-amount-wrap {
@@ -710,8 +733,9 @@
       font-size: 0.85rem;
       color: var(--text-secondary);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
+      line-height: 1.5;
     }
 
     .price-features li::before {
@@ -719,6 +743,7 @@
       font-family: var(--font-mono);
       font-weight: 900;
       color: var(--text-primary);
+      margin-top: 1px;
     }
 
     /* SDK Showcase */
@@ -737,59 +762,59 @@
       padding: 14px 20px;
       background-color: var(--bg-surface-elevated);
       border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .sdk-tabs {
       display: flex;
       gap: 6px;
+      overflow-x: auto;
     }
 
     .sdk-tab {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-secondary);
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 0.775rem;
-      font-weight: 700;
+      font-weight: 600;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
 
     .sdk-tab.active {
-      background-color: var(--bg-surface);
+      background: var(--bg-surface);
       color: var(--text-primary);
       border-color: var(--border-subtle);
-    }
-
-    .sdk-body {
-      padding: 22px;
-      background-color: var(--code-bg);
+      box-shadow: var(--shadow-sm);
     }
 
     .code-block {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      line-height: 1.65;
+      background-color: var(--code-bg);
       color: var(--code-text);
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.825rem;
+      line-height: 1.6;
       overflow-x: auto;
-      white-space: pre;
     }
 
     /* FAQ */
     .faq-container {
-      max-width: 800px;
+      max-width: 820px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     .faq-item {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-lg);
       overflow: hidden;
       transition: border-color 0.2s;
     }
@@ -913,6 +938,8 @@
       font-size: 0.775rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     /* Toast */
@@ -939,18 +966,37 @@
       opacity: 1;
     }
 
+    /* Responsive */
     @media (max-width: 992px) {
-      .hero-grid, .pricing-grid, .features-grid, .arch-flow-grid {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+      .arch-flow-grid {
         grid-template-columns: 1fr;
       }
       .footer-grid {
         grid-template-columns: 1fr 1fr;
       }
+    }
+
+    @media (max-width: 768px) {
       .nav-links {
         display: none;
       }
       .hero-title {
         font-size: 2.4rem;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -962,11 +1008,12 @@
     <div class="container navbar-inner">
       <a href="#" class="brand-logo">
         <div class="brand-icon">
-          <img src="backend/public/images/logo.png" alt="JalurGaib Logo" class="jalurgaib-logo">
+          <img src="backend/public/images/logo.png" alt="JG" class="jalurgaib-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <span style="display: none; font-size: 0.85rem;">JG</span>
         </div>
         <span class="brand-name">
           JalurGaib.wa
-          <span class="brand-tag">SaaS Beta</span>
+          <span class="brand-tag">SaaS Cloud</span>
         </span>
       </a>
 
@@ -975,6 +1022,7 @@
         <li><a href="#arsitektur">Arsitektur Cloud</a></li>
         <li><a href="#preview">Contoh API</a></li>
         <li><a href="#harga">Paket Kuota</a></li>
+        <li><a href="#sdk">Dokumentasi</a></li>
         <li><a href="#faq">FAQ</a></li>
       </ul>
 
@@ -1010,7 +1058,7 @@
           </h1>
 
           <p class="hero-desc">
-            Layanan <strong>Managed Unofficial WhatsApp Gateway Cloud</strong> berbasis Go (whatsmeow) & Laravel 11. Dilengkapi algoritma <em>peniru jempol manusia</em> agar nomor Anda tetap aman terkendali saat kirim OTP atau notifikasi pesanan.
+            Layanan <strong>Managed Unofficial WhatsApp Gateway Cloud</strong> berbasis Web. Dilengkapi algoritma <em>peniru jempol manusia</em> agar nomor Anda tetap aman terkendali saat kirim OTP atau notifikasi pesanan.
           </p>
 
           <div class="hero-buttons">
@@ -1045,7 +1093,7 @@
           </div>
         </div>
 
-        <!-- Right: Safe Educational Preview -->
+        <!-- Right: Safe Educational Preview (Anti-DDoS / Read Only Sandbox) -->
         <div>
           <div class="simulator-container" id="preview">
             <div class="sim-header">
@@ -1078,7 +1126,7 @@ X-API-Key: JG_GAIB_YOUR_TENANT_API_KEY
             <div id="preview-tab-response" class="preview-box" style="display: none;"><code>{
   "status": "success",
   "code": 200,
-  "message": "Pesan telah masuk antrean worker Go whatsmeow",
+  "message": "Pesan telah berhasil masuk antrean cloud dispatch",
   "data": {
     "message_id": "JG_MSG_88491A",
     "recipient": "6281234567890",
@@ -1096,7 +1144,7 @@ X-API-Key: JG_GAIB_YOUR_TENANT_API_KEY
 // 4. Panggil endpoint resmi kami via server backend Anda</code></div>
 
             <div class="safe-notice">
-              <span>🔒</span>
+              <i class="fa-solid fa-lock text-xs"></i>
               <span>Uji coba live langsung dikunci di dashboard terotentikasi untuk perlindungan anti-spam & rate-limit.</span>
             </div>
           </div>
@@ -1254,39 +1302,40 @@ X-API-Key: JG_GAIB_YOUR_TENANT_API_KEY
     </div>
   </section>
 
-  <!-- PRICING TIERS -->
+  <!-- PRICING TIERS (STATIC SHOWCASE) -->
   <section class="section-padding" style="background-color: var(--bg-surface-subtle);" id="harga">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">PAKET LAYANAN CLOUD</span>
         <h2 class="section-title">Pilihan Paket Sesuai Kebutuhan</h2>
         <p class="section-desc">
-          Seluruh layanan berjalan di server cloud kami (SaaS managed). Mulai gratis sekarang di masa Early Access!
+          Seluruh layanan berjalan di server cloud kami (SaaS managed). Pembayaran instan otomatis via QRIS & Virtual Account!
         </p>
       </div>
 
       <div class="pricing-grid">
-        <!-- Tier 1: Free Beta (ACTIVE) -->
+        <!-- Paket 1: Free Tier -->
         <div class="price-card active-plan">
           <div>
-            <div class="mono-badge" style="margin-bottom: 12px;">AKTIF SEKARANG</div>
+            <div class="mono-badge" style="margin-bottom: 12px;">
+              GRATIS
+            </div>
             <div class="price-header">
-              <h3 class="price-tier-name">Free Beta (Early Access)</h3>
-              <p class="price-tier-sub">Managed Cloud Server (Gratis Uji Coba)</p>
+              <h3 class="price-tier-name">Free Tier</h3>
+              <p class="price-tier-sub">Paket gratis untuk testing dan kebutuhan dasar integrasi WhatsApp.</p>
             </div>
 
             <div class="price-amount-wrap">
-              <span class="price-amount">Rp 0</span>
-              <span class="price-period">/ gratis</span>
+              <span class="price-amount">Gratis</span>
+              <span class="price-period">/ selamanya</span>
             </div>
 
             <ul class="price-features">
-              <li><strong>1 - 2 Device WhatsApp</strong> terhubung</li>
-              <li><strong>1 - 50 Pesan / Hari</strong> (Fair Usage)</li>
-              <li>Server Cloud Dikelola dari Kami</li>
-              <li>Algoritma Human Delay (1-4 detik)</li>
-              <li>Web Dashboard & Live QR Scanner</li>
-              <li>REST API Key Terisolasi</li>
+              <li>2 Slot Perangkat WhatsApp Multi-Device</li>
+              <li>50 Kuota Pesan per Hari</li>
+              <li>Akses Full REST API & Webhook</li>
+              <li>Real-time Message Logs & Status</li>
+              <li>Community Support</li>
             </ul>
           </div>
 
@@ -1295,61 +1344,66 @@ X-API-Key: JG_GAIB_YOUR_TENANT_API_KEY
           </a>
         </div>
 
-        <!-- Tier 2: Pro (COMING SOON) -->
-        <div class="price-card">
+        <!-- Paket 2: Starter Pro (POPULER) -->
+        <div class="price-card popular-plan">
+          <div class="popular-ribbon">POPULER ⭐</div>
           <div>
-            <div class="mono-badge" style="margin-bottom: 12px; opacity: 0.65;">COMING SOON</div>
+            <div class="mono-badge" style="margin-bottom: 12px;">
+              AKTIF SEKARANG
+            </div>
             <div class="price-header">
-              <h3 class="price-tier-name">Siluman Pro</h3>
-              <p class="price-tier-sub">Untuk Bisnis & Notifikasi Skala Menengah</p>
+              <h3 class="price-tier-name">Starter Pro</h3>
+              <p class="price-tier-sub">Solusi ideal untuk UMKM, Online Shop, dan Notifikasi Otomatis.</p>
             </div>
 
             <div class="price-amount-wrap">
-              <span class="price-amount">Segera</span>
+              <span class="price-amount">Rp 75.000</span>
               <span class="price-period">/ bulan</span>
             </div>
 
             <ul class="price-features">
-              <li>Hingga 5 - 10 Device WhatsApp</li>
-              <li>5.000 - 10.000 Pesan / Hari</li>
-              <li>High Priority Redis Queue</li>
-              <li>Webhook Inbound Auto-Reply</li>
-              <li>Multi-User Staff Access</li>
-              <li>Dukungan Teknis Prioritas</li>
+              <li>5 Slot Perangkat WhatsApp Multi-Nomor</li>
+              <li>1.000 Kuota Pesan per Hari</li>
+              <li>Smart Anti-Ban Anti-Spam Queue Delay</li>
+              <li>Bulk Send Broadcast Feature</li>
+              <li>REST API, Webhook & Event Listener</li>
+              <li>Dukungan Prioritas via WhatsApp Chat</li>
             </ul>
           </div>
 
-          <button class="btn btn-secondary btn-disabled" style="width: 100%;">
-            Segera Hadir
-          </button>
+          <a href="backend/public/register" class="btn btn-primary" style="width: 100%;">
+            Pilih Paket Ini →
+          </a>
         </div>
 
-        <!-- Tier 3: Enterprise (COMING SOON) -->
-        <div class="price-card">
+        <!-- Paket 3: Business Enterprise (COMING SOON) -->
+        <div class="price-card" style="opacity: 0.88;">
           <div>
-            <div class="mono-badge" style="margin-bottom: 12px; opacity: 0.65;">COMING SOON</div>
+            <div class="mono-badge" style="margin-bottom: 12px; opacity: 0.65;">
+              COMING SOON
+            </div>
             <div class="price-header">
-              <h3 class="price-tier-name">Bikin Zuck Pusing</h3>
-              <p class="price-tier-sub">Dedicated Cloud VPS & Cluster Khusus</p>
+              <h3 class="price-tier-name">Business Enterprise</h3>
+              <p class="price-tier-sub">Infrastruktur skala besar dengan high throughput & priority queue.</p>
             </div>
 
             <div class="price-amount-wrap">
-              <span class="price-amount">Segera</span>
-              <span class="price-period">/ custom</span>
+              <span class="price-amount">Rp 250.000</span>
+              <span class="price-period">/ bulan</span>
             </div>
 
             <ul class="price-features">
-              <li>Dedicated Cloud Server Sendiri</li>
-              <li>Unlimited Device WhatsApp</li>
-              <li>Unlimited Pesan per Hari</li>
-              <li>Dedicated Golang Microservice Worker</li>
-              <li>SLA Uptime 99.9%</li>
-              <li>Integrasi Custom Database & Webhook</li>
+              <li>15 Slot Perangkat WhatsApp Multi-Nomor</li>
+              <li>10.000 Kuota Pesan per Hari</li>
+              <li>Dedicated High Priority Queue Worker</li>
+              <li>Custom Webhook Endpoints & Analytics</li>
+              <li>Multi-Tenant Integration Support</li>
+              <li>Dukungan Teknis VIP 24/7 Langsung</li>
             </ul>
           </div>
 
-          <button class="btn btn-secondary btn-disabled" style="width: 100%;">
-            Segera Hadir
+          <button class="btn btn-secondary btn-disabled" style="width: 100%;" disabled>
+            ⏳ Segera Hadir
           </button>
         </div>
       </div>
@@ -1425,11 +1479,11 @@ if ($response->successful()) {
 
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-header">
-            <span>Berapa kuota yang saya dapatkan pada masa Free Beta saat ini?</span>
+            <span>Metode pembayaran apa saja yang didukung?</span>
             <span class="faq-icon">+</span>
           </div>
           <div class="faq-body">
-            Saat ini setiap akun gratis dapat menautkan <strong>1 hingga 2 device WhatsApp</strong> dan mengirimkan <strong>1 sampai 50 pesan per hari</strong>. Batasan ini diterapkan untuk menjaga stabilitas server dan mencegah penyalahgunaan spam massal.
+            Kami mendukung pembayaran otomatis instan via <strong>QRIS</strong> (BCA, GoPay, OVO, Dana, ShopeePay, LinkAja, seluruh mobile banking) serta <strong>Virtual Account Bank</strong> (BRI, Mandiri, BNI, Permata, dll) melalui integrasi resmi Kasera Pay. Pembayaran terkonfirmasi otomatis dalam hitungan detik.
           </div>
         </div>
 
@@ -1466,10 +1520,10 @@ if ($response->successful()) {
         </p>
         <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
           <a href="backend/public/register" class="btn btn-primary">
-            Daftar Akun Gratis Sekarang
+            Daftar Akun Gratis Sekarang 🚀
           </a>
           <a href="backend/public/login" class="btn btn-secondary">
-            Masuk
+            Masuk ke Akun
           </a>
         </div>
       </div>
@@ -1483,7 +1537,8 @@ if ($response->successful()) {
         <div>
           <a href="#" class="brand-logo" style="margin-bottom: 12px;">
             <div class="brand-icon">
-              <img src="backend/public/images/logo.png" alt="JalurGaib Logo" class="jalurgaib-logo">
+              <img src="backend/public/images/logo.png" alt="JG" class="jalurgaib-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+              <span style="display: none; font-size: 0.85rem;">JG</span>
             </div>
             <span class="brand-name">JalurGaib.wa</span>
           </a>
@@ -1533,6 +1588,7 @@ if ($response->successful()) {
 
   <!-- JAVASCRIPT -->
   <script>
+    // Theme Switcher (Strict Monochromatic: Putih-Hitam default)
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme') || 'light';
@@ -1558,6 +1614,7 @@ if ($response->successful()) {
       }, 2500);
     }
 
+    // Preview Tab Switcher
     function switchPreviewTab(tab, btn) {
       document.querySelectorAll('.sim-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -1575,6 +1632,7 @@ if ($response->successful()) {
       }
     }
 
+    // SDK Code Snippets
     const sdkSnippets = {
       php: `use Illuminate\\Support\\Facades\\Http;
 
@@ -1642,6 +1700,7 @@ print(res.json())`
       showToast('Kode snippet disalin! 📋');
     }
 
+    // FAQ Toggle
     function toggleFaq(el) {
       const isActive = el.classList.contains('active');
       document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));

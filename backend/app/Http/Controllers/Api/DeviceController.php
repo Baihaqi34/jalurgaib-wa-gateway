@@ -64,10 +64,15 @@ class DeviceController extends Controller
             ], 403);
         }
 
+        $phone = preg_replace('/[^0-9]/', '', $validated['phone_number']);
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
+        }
+
         $device = $user->devices()->create([
             'name'         => $validated['name'],
             'device_id'    => 'dev_' . Str::random(12),
-            'phone_number' => $validated['phone_number'],
+            'phone_number' => $phone ?: $validated['phone_number'],
             'status'       => 'disconnected',
         ]);
 

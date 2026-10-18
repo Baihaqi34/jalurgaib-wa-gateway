@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'api_key' => \App\Http\Middleware\ApiKeyAuth::class,
             'admin'   => \App\Http\Middleware\EnsureAdmin::class,
         ]);
+        // Server-to-server webhook has no CSRF session; authenticates via Kasera-Signature-V1
+        $middleware->validateCsrfTokens(except: [
+            'kasera-pay/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

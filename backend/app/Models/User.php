@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role', 'status', 'suspend_reason', 'package_id', 'package_expires_at'])]
+#[Fillable(['name', 'email', 'password', 'role', 'status', 'suspend_reason', 'package_id', 'package_expires_at', 'firebase_uid', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -57,9 +57,22 @@ class User extends Authenticatable
         return $this->belongsTo(Package::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function isPackageExpired(): bool
+    {
+        return $this->package_expires_at !== null && $this->package_expires_at->isPast();
+    }
+
     public function getPackage(): Package
     {
         if ($this->package) {
+            if ($this->package_expires_at && $this->package_expires_at->isPast()) {
+                return Package::getDefaultPackage();
+            }
             return $this->package;
         }
 

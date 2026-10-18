@@ -56,8 +56,8 @@ class DatabaseSeeder extends Seeder
                     'REST API, Webhook & Event Listener',
                     'Dukungan Prioritas via WhatsApp Chat',
                 ],
-                'status'              => 'coming_soon',
-                'badge'               => 'Segera Hadir',
+                'status'              => 'active',
+                'badge'               => 'Populer',
                 'sort_order'          => 2,
             ]
         );

@@ -40,7 +40,18 @@ class WhatsAppService
             }
 
             if ($response->successful() && ($data['success'] ?? false)) {
-                $device->update(['status' => 'pending']);
+                $status = $data['data']['status'] ?? 'pending';
+                if ($status === 'connected') {
+                    $device->update(['status' => 'connected']);
+                } elseif ($status === 'waiting_qr' || !empty($data['data']['qr_code'])) {
+                    $device->update(['status' => 'scan_qr']);
+                } else {
+                    $device->update(['status' => 'pending']);
+                }
+
+                if (isset($data['data']['qr_code']) && !isset($data['data']['qr'])) {
+                    $data['data']['qr'] = $data['data']['qr_code'];
+                }
             }
 
             return $data;
@@ -102,10 +113,24 @@ class WhatsAppService
                     $newStatus = 'pending';
                 }
 
-                $device->update([
+                $updateData = [
                     'status' => $newStatus,
                     'jid'    => !empty($statusData['logged_in']) ? ($statusData['jid'] ?? null) : null,
-                ]);
+                ];
+
+                if (!empty($statusData['jid'])) {
+                    $jidParts = explode('@', $statusData['jid']);
+                    $extractedPhone = explode(':', $jidParts[0])[0];
+                    if ($extractedPhone) {
+                        $updateData['phone_number'] = $extractedPhone;
+                    }
+                }
+
+                $device->update($updateData);
+
+                if (isset($data['data']) && is_array($data['data'])) {
+                    $data['data']['status'] = $newStatus;
+                }
             }
 
             return $data ?? ['success' => false, 'message' => 'No response'];

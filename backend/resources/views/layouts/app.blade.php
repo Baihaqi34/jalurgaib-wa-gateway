@@ -13,6 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -227,8 +229,412 @@
         .swal2-input:focus, .swal2-textarea:focus {
             border-color: #fafafa !important;
             box-shadow: 0 0 0 1px #fafafa !important;
+            outline: none !important;
+        }
+
+        /* Theme Icon Visibility */
+        html.dark .theme-icon-sun { display: inline-block !important; }
+        html.dark .theme-icon-moon { display: none !important; }
+        html.light .theme-icon-sun { display: none !important; }
+        html.light .theme-icon-moon { display: inline-block !important; }
+
+        /* ─── MODERN BENTO & QUIET LUXURY: LIGHT MODE ARCHITECTURE ─── */
+        html.light {
+            color-scheme: light;
+        }
+
+        html.light body {
+            background-color: #f8fafc !important; /* Slate 50 canvas */
+            color: #0f172a !important;            /* Slate 900 text */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(15, 23, 42, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.02) 0px, transparent 50%) !important;
+        }
+
+        /* Bento Surfaces & Cards */
+        html.light .mono-card,
+        html.light .gradient-border-card {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 6px 20px -4px rgba(15, 23, 42, 0.04) !important;
+        }
+        html.light .mono-card:hover,
+        html.light .gradient-border-card:hover {
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07) !important;
+        }
+
+        /* Universal Surface Classes with Opacity Catchers */
+        html.light [class*="bg-mono-950"] {
+            background-color: #f8fafc !important;
+        }
+        html.light [class*="bg-mono-900"] {
+            background-color: #ffffff !important;
+        }
+        html.light [class*="bg-mono-850"] {
+            background-color: #f1f5f9 !important;
+        }
+        html.light [class*="bg-mono-800"] {
+            background-color: #e2e8f0 !important;
+        }
+        html.light [class*="bg-mono-700"] {
+            background-color: #cbd5e1 !important;
+        }
+
+        /* Hairline Crisp 1px Borders */
+        html.light [class*="border-mono-800"],
+        html.light [class*="border-mono-700"],
+        html.light [class*="border-mono-600"] {
+            border-color: #e2e8f0 !important;
+        }
+        html.light [class*="border-mono-500"] {
+            border-color: #cbd5e1 !important;
+        }
+        html.light hr {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Typography Hierarchy (Quiet Luxury Tabular) */
+        html.light [class*="text-mono-50"],
+        html.light [class*="text-mono-100"] {
+            color: #0f172a !important;
+        }
+        html.light [class*="text-mono-200"],
+        html.light [class*="text-mono-300"] {
+            color: #334155 !important;
+        }
+        html.light [class*="text-mono-400"] {
+            color: #64748b !important;
+        }
+        html.light [class*="text-mono-500"] {
+            color: #94a3b8 !important;
+        }
+        html.light [class*="text-mono-950"] {
+            color: #0f172a !important;
+        }
+
+        /* Badges & Micro-tags */
+        html.light span[class*="bg-mono-800"],
+        html.light span[class*="bg-mono-850"] {
+            background-color: #f1f5f9 !important;
+            color: #334155 !important;
+            border-color: #e2e8f0 !important;
+        }
+        html.light span[class*="bg-mono-950"] {
+            background-color: #f8fafc !important;
+            color: #334155 !important;
+            border-color: #e2e8f0 !important;
+        }
+        html.light .mono-badge {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+
+        /* ─── SIDEBAR ARCHITECTURE (MODERN BENTO) ─── */
+        html.light aside {
+            background-color: #ffffff !important;
+            border-right: 1px solid #e2e8f0 !important;
+            box-shadow: 1px 0 10px 0 rgba(15, 23, 42, 0.02) !important;
+        }
+        html.light aside [class*="border-b"],
+        html.light aside [class*="border-t"] {
+            border-color: #e2e8f0 !important;
+        }
+        html.light aside div.text-mono-500,
+        html.light aside div.font-mono.uppercase {
+            color: #64748b !important;
+            letter-spacing: 0.08em !important;
+            font-weight: 700 !important;
+        }
+
+        /* Active Navigation Item in Light Mode: Quiet Luxury Slate-900 Pill */
+        html.light .sidebar-nav-item.active,
+        html.light aside a.active,
+        html.light aside a.bg-mono-50 {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15) !important;
+        }
+        html.light .sidebar-nav-item.active i,
+        html.light aside a.active i,
+        html.light aside a.bg-mono-50 i {
+            color: #ffffff !important;
+        }
+
+        /* Inactive Navigation Item in Light Mode */
+        html.light .sidebar-nav-item:not(.active),
+        html.light aside a:not(.active):not(.bg-mono-50) {
+            color: #475569 !important;
+            font-weight: 600 !important;
+        }
+        html.light .sidebar-nav-item:not(.active) i,
+        html.light aside a:not(.active):not(.bg-mono-50) i {
+            color: #64748b !important;
+        }
+        html.light .sidebar-nav-item:not(.active):hover,
+        html.light aside a:not(.active):not(.bg-mono-50):hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        html.light .sidebar-nav-item:not(.active):hover i,
+        html.light aside a:not(.active):not(.bg-mono-50):hover i {
+            color: #0f172a !important;
+        }
+
+        /* Sidebar Footer / User Profile */
+        html.light aside > div:last-child {
+            background-color: #f8fafc !important;
+            border-top: 1px solid #e2e8f0 !important;
+        }
+        html.light aside > div:last-child .w-9.h-9 {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        /* ─── TOP NAVBAR ARCHITECTURE ─── */
+        html.light header {
+            background-color: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        html.light header h2,
+        html.light header h2 * {
+            color: #0f172a !important;
+        }
+        html.light header [class*="text-mono-400"] {
+            color: #64748b !important;
+        }
+        html.light header [class*="text-mono-600"] {
+            color: #cbd5e1 !important;
+        }
+        html.light header [class*="border-mono-700"] {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Telemetry Status Widget & Controls in Header */
+        html.light header div[class*="bg-mono-850"],
+        html.light header button[class*="bg-mono-850"] {
+            background-color: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #334155 !important;
+        }
+        html.light header button[class*="bg-mono-850"]:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        html.light header button[class*="bg-mono-850"] .w-7.h-7 {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+
+        /* Profile Dropdown Card */
+        html.light div[class*="mono-card"][class*="z-50"] {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.1) !important;
+        }
+        html.light div[class*="mono-card"][class*="z-50"] > div.bg-mono-950 {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        /* ─── CURRENT PLAN & BENTO TELEMETRY WIDGET ─── */
+        html.light .plan-star-box {
+            background-color: #fffbeb !important;
+            border: 1px solid #fde68a !important;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12) !important;
+        }
+        html.light .quota-summary-box,
+        html.light div.flex.items-center.gap-3[class*="bg-mono-950"] {
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        }
+        html.light .quota-summary-box .text-mono-400,
+        html.light div.flex.items-center.gap-3[class*="bg-mono-950"] .text-mono-400 {
+            color: #64748b !important;
+            font-weight: 700 !important;
+        }
+        html.light .quota-summary-box .text-mono-50,
+        html.light div.flex.items-center.gap-3[class*="bg-mono-950"] .text-mono-50 {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+        html.light .quota-summary-box .bg-mono-700,
+        html.light div.flex.items-center.gap-3[class*="bg-mono-950"] .bg-mono-700 {
+            background-color: #e2e8f0 !important;
+        }
+
+        /* ─── PRICING & TIER BENTO GRID ─── */
+        html.light .price-amount,
+        html.light span.text-3xl.font-extrabold.font-mono,
+        html.light span.text-2xl.font-extrabold.font-mono {
+            color: #0f172a !important;
+            font-variant-numeric: tabular-nums;
+        }
+        html.light .price-period,
+        html.light span.text-xs[class*="text-mono-500"].font-mono,
+        html.light span.text-xs[class*="text-mono-400"].font-mono {
+            color: #64748b !important;
+        }
+
+        /* Highlight Selected Card */
+        html.light div[class*="ring-mono-300"],
+        html.light div[class*="border-mono-200"] {
+            border-color: #0f172a !important;
+            box-shadow: 0 0 0 2px #0f172a, 0 12px 30px -8px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        /* Capacity Metric Micro-boxes */
+        html.light .grid.grid-cols-2 .p-3[class*="bg-mono-950"] {
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        html.light .grid.grid-cols-2 .p-3[class*="bg-mono-950"] .text-mono-50 {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        html.light .grid.grid-cols-2 .p-3[class*="bg-mono-950"] .text-mono-500 {
+            color: #64748b !important;
+            font-weight: 700 !important;
+        }
+
+        /* Feature Bullet Checks */
+        html.light ul li span.text-mono-100 {
+            color: #059669 !important; /* Emerald for clean positive ticks */
+        }
+        html.light ul li span.text-mono-300 {
+            color: #334155 !important;
+        }
+
+        /* ─── CONTROLS, INPUTS & BUTTONS ─── */
+        html.light .mono-input {
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html.light .mono-input:focus {
+            border-color: #0284c7 !important;
+            box-shadow: 0 0 0 1px #0284c7 !important;
+        }
+        html.light .mono-btn-primary {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15) !important;
+        }
+        html.light .mono-btn-primary:hover {
+            background-color: #1e293b !important;
+            transform: translateY(-1px);
+        }
+        html.light .mono-btn-secondary {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+        html.light .mono-btn-secondary:hover {
+            background-color: #e2e8f0 !important;
+        }
+
+        /* ─── DATA TABLES (MODERN BENTO TABULAR) ─── */
+        html.light table thead tr {
+            background-color: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        html.light table thead th {
+            color: #64748b !important;
+            font-family: var(--font-mono);
+            font-size: 11px !important;
+            font-weight: 700 !important;
+        }
+        html.light table tbody tr {
+            border-bottom-color: #f1f5f9 !important;
+        }
+        html.light table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+        html.light table td {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Status Pills in Light Mode */
+        html.light .bg-emerald-500\/20 {
+            background-color: #ecfdf5 !important;
+            color: #065f46 !important;
+            border-color: #a7f3d0 !important;
+        }
+        html.light .bg-amber-500\/20 {
+            background-color: #fffbeb !important;
+            color: #92400e !important;
+            border-color: #fde68a !important;
+        }
+        html.light .bg-zinc-500\/20,
+        html.light .bg-zinc-600\/20 {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-color: #cbd5e1 !important;
+        }
+        html.light .bg-red-500\/20 {
+            background-color: #fef2f2 !important;
+            color: #991b1b !important;
+            border-color: #fecaca !important;
+        }
+
+        /* SweetAlert Light Mode */
+        html.light .swal2-popup.swal2-dark-custom {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.15) !important;
+            color: #0f172a !important;
+        }
+        html.light .swal2-title {
+            color: #0f172a !important;
+        }
+        html.light .swal2-html-container {
+            color: #475569 !important;
+        }
+        html.light .swal2-cancel {
+            background: #f1f5f9 !important;
+            color: #334155 !important;
+            border-color: #cbd5e1 !important;
+        }
+        html.light .swal2-input, html.light .swal2-textarea {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        html.light footer {
+            border-top-color: #e2e8f0 !important;
+            color: #94a3b8 !important;
         }
     </style>
+    <!-- Theme Switcher Logic -->
+    <script>
+        if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        }
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        };
+    </script>
     @stack('styles')
 </head>
 <body class="min-h-screen text-mono-100 font-sans flex flex-col md:flex-row antialiased selection:bg-mono-100 selection:text-mono-950 relative overflow-x-hidden" x-data="{ sidebarOpen: false }">
@@ -254,12 +660,12 @@
         @include('layouts.navbar')
 
         <!-- MAIN PAGE CONTENT -->
-        <main class="flex-1 w-full px-6 py-6">
+        <main class="flex-1 w-full px-4 py-5 sm:px-6 sm:py-6">
             @yield('content')
         </main>
 
         <!-- FOOTER -->
-        <footer class="border-t border-mono-700/60 py-4 px-6 text-center text-xs text-mono-500 font-medium">
+        <footer class="border-t border-mono-700/60 py-4 px-4 sm:px-6 text-center text-xs text-mono-500 font-medium">
             JalurGaib WA Gateway &copy; {{ date('Y') }} • High-Performance Architecture (Laravel + Go Engine)
         </footer>
     </div>

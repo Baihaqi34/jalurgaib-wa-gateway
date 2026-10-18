@@ -2,49 +2,87 @@
        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
     <!-- Sidebar Brand -->
-    <div class="h-20 px-6 flex items-center gap-3 border-b border-mono-700/80">
-        <div class="w-10 h-10 rounded-2xl bg-mono-950 border border-mono-700 flex items-center justify-center p-1.5 shadow-md">
-            <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo w-full h-full object-contain">
+    <div class="h-16 px-5 flex items-center justify-between border-b border-mono-700/80">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-mono-950 border border-mono-700 flex items-center justify-center p-1.5 shadow-sm flex-shrink-0">
+                <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo w-full h-full object-contain">
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <span class="font-extrabold text-mono-50 tracking-tight text-sm truncate">JalurGaib</span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-mono-800 text-mono-300 border border-mono-700 tracking-wide uppercase">Gateway</span>
+                </div>
+                <div class="text-[10px] font-mono font-semibold text-mono-400 tracking-wider uppercase flex items-center gap-1 mt-0.5">
+                    <i class="fa-solid fa-shield-halved text-[9px] text-mono-300"></i>
+                    <span>Super Admin</span>
+                </div>
+            </div>
         </div>
-        <div>
-            <div class="font-extrabold text-mono-50 tracking-tight leading-tight text-base">JalurGaib WA Gateway</div>
-            <div class="text-[10px] font-bold text-mono-400 font-mono tracking-widest uppercase">🛡️ SUPER ADMIN</div>
-        </div>
+
+        <!-- Mobile Close Button -->
+        <button @click="sidebarOpen = false" class="md:hidden p-1.5 rounded-lg text-mono-400 hover:text-white hover:bg-mono-800 transition" title="Tutup Menu">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
     </div>
 
     <!-- Navigation Menu -->
-    <div class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+    <div class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto font-sans">
         
-        <div class="px-3 pb-2 text-[10px] font-extrabold text-mono-500 uppercase tracking-widest">
+        <div class="px-3 pb-2 text-[10px] font-extrabold text-mono-500 uppercase tracking-widest font-mono">
             Menu Utama
         </div>
 
         <!-- Ringkasan Dashboard -->
         <a href="{{ route('admin.dashboard') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition {{ request()->routeIs('admin.dashboard') ? 'bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <span class="text-base">📊</span>
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.dashboard') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-chart-line text-sm w-4 text-center {{ request()->routeIs('admin.dashboard') ? 'text-mono-950' : 'text-mono-400' }}"></i>
             <span>Dashboard Global</span>
         </a>
 
         <!-- Manajemen Pengguna (CRUD) -->
         <a href="{{ route('admin.users.index') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition {{ request()->routeIs('admin.users.*') ? 'bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <span class="text-base">👥</span>
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.users.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-users text-sm w-4 text-center {{ request()->routeIs('admin.users.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
             <span>Data Pengguna (CRUD)</span>
         </a>
 
         <!-- Manajemen Paket & Tier (CRUD) -->
         <a href="{{ route('admin.packages.index') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition {{ request()->routeIs('admin.packages.*') ? 'bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <span class="text-base">📦</span>
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.packages.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-cubes text-sm w-4 text-center {{ request()->routeIs('admin.packages.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
             <span>Kelola Paket & Tier</span>
+        </a>
+
+        <!-- Riwayat Transaksi & Pembayaran -->
+        <a href="{{ route('admin.orders.index') }}"
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.orders.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-credit-card text-sm w-4 text-center {{ request()->routeIs('admin.orders.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+            <span>Riwayat Transaksi</span>
+        </a>
+
+        <!-- Kelola Testimoni Landing Page -->
+        <a href="{{ route('admin.testimonials.index') }}"
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.testimonials.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-comments text-sm w-4 text-center {{ request()->routeIs('admin.testimonials.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+            <span>Testimoni Landing</span>
         </a>
 
         <!-- Dokumentasi REST API -->
         <a href="{{ route('admin.docs') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition {{ request()->routeIs('admin.docs') ? 'bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <span class="text-base">📖</span>
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.docs') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-book-bookmark text-sm w-4 text-center {{ request()->routeIs('admin.docs') ? 'text-mono-950' : 'text-mono-400' }}"></i>
             <span>Dokumentasi REST API</span>
+        </a>
+
+        <div class="px-3 pt-4 pb-2 text-[10px] font-extrabold text-mono-500 uppercase tracking-widest font-mono">
+            Pengaturan Akun
+        </div>
+
+        <!-- Profil & Password -->
+        <a href="{{ route('user.profile') }}"
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('user.profile') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-user-gear text-sm w-4 text-center {{ request()->routeIs('user.profile') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+            <span>Profil & Password</span>
         </a>
     </div>
 

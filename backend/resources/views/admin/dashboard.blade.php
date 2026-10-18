@@ -8,25 +8,29 @@
 <div x-data="adminDashboardApp()" x-init="initDashboard()" class="space-y-8">
 
     <!-- Global Key Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         <!-- Total Users -->
         <div class="mono-card p-6">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Total Pengguna</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">👥</div>
+                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider font-mono">Total Pengguna</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-sm shadow-sm">
+                    <i class="fa-solid fa-users"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50" x-text="stats.total_users">{{ $stats['total_users'] }}</div>
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums" x-text="stats.total_users">{{ $stats['total_users'] }}</div>
             <div class="text-xs text-mono-400 mt-1.5 font-medium">Akun Admin & Tenant terdaftar</div>
         </div>
 
         <!-- Global WA Devices -->
         <div class="mono-card p-6">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Perangkat WA Global</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">📱</div>
+                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider font-mono">Perangkat WA Global</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-emerald-400 flex items-center justify-center text-lg shadow-sm">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50">
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums">
                 <span x-text="stats.connected_dev">{{ $stats['connected_dev'] }}</span>
                 <span class="text-sm font-semibold text-mono-400">/ <span x-text="stats.total_devices">{{ $stats['total_devices'] }}</span> Online</span>
             </div>
@@ -36,20 +40,24 @@
         <!-- Sent Messages Global -->
         <div class="mono-card p-6">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Pesan Terkirim</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">🚀</div>
+                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider font-mono">Pesan Terkirim</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-sm shadow-sm">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
             </div>
-            <div class="text-3xl font-extrabold text-mono-50" x-text="stats.sent_messages">{{ $stats['sent_messages'] }}</div>
+            <div class="text-3xl font-extrabold text-mono-50 tabular-nums" x-text="stats.sent_messages">{{ $stats['sent_messages'] }}</div>
             <div class="text-xs text-mono-400 mt-1.5 font-medium">Total pesan berhasil di-deliver</div>
         </div>
 
         <!-- Queue Latency -->
         <div class="mono-card p-6">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider">Waktu Tunggu Antrean</span>
-                <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base shadow-sm">⏳</div>
+                <span class="text-xs font-bold text-mono-400 uppercase tracking-wider font-mono">Waktu Tunggu Antrean</span>
+                <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-amber-400 flex items-center justify-center text-sm shadow-sm">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
             </div>
-            <div class="text-2xl font-extrabold text-mono-100 truncate" x-text="stats.oldest_wait_time || '0 detik'">{{ $stats['queue']['oldest_job_wait'] ?? '0 detik' }}</div>
+            <div class="text-2xl font-extrabold text-mono-100 truncate tabular-nums" x-text="stats.oldest_wait_time || '0 detik'">{{ $stats['queue']['oldest_job_wait'] ?? '0 detik' }}</div>
             <div class="text-xs text-mono-400 mt-1.5 font-medium"><span x-text="stats.pending_messages">{{ $stats['pending_messages'] }}</span> pesan dalam antrean</div>
         </div>
     </div>
@@ -61,8 +69,8 @@
         <div class="mono-card p-7 space-y-5">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-mono-50 text-mono-950 flex items-center justify-center text-base font-bold shadow-sm">
-                        ⚡
+                    <div class="w-10 h-10 rounded-xl bg-mono-50 text-mono-950 flex items-center justify-center text-sm font-bold shadow-sm">
+                        <i class="fa-solid fa-bolt"></i>
                     </div>
                     <div>
                         <h3 class="text-base font-extrabold text-mono-50">WhatsApp Go Service (Port 8080)</h3>
@@ -70,7 +78,8 @@
                     </div>
                 </div>
                 <button @click="loadDiagnostics()" class="px-3.5 py-1.5 mono-btn-secondary text-xs font-semibold flex items-center gap-1.5">
-                    🔄 Ping Service
+                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                    <span>Ping Service</span>
                 </button>
             </div>
 
@@ -113,8 +122,8 @@
         <div class="mono-card p-7 space-y-5">
             <div class="flex items-center justify-between flex-wrap gap-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center text-base font-bold shadow-sm">
-                        ⏳
+                    <div class="w-10 h-10 rounded-xl bg-mono-800 border border-mono-700 text-amber-400 flex items-center justify-center text-sm font-bold shadow-sm">
+                        <i class="fa-solid fa-hourglass-half"></i>
                     </div>
                     <div>
                         <h3 class="text-base font-extrabold text-mono-50">Queue Worker & Antrean Pesan</h3>
@@ -146,7 +155,8 @@
 
             <div class="p-4 bg-mono-950 rounded-xl border border-mono-700 text-xs text-mono-400 space-y-1">
                 <div class="flex items-center gap-2 text-mono-200 font-bold">
-                    <span>🛡️</span> Kebijakan Privasi Pesan
+                    <i class="fa-solid fa-shield-halved text-emerald-400 text-xs"></i>
+                    <span>Kebijakan Privasi Pesan</span>
                 </div>
                 <p class="text-[11px] leading-relaxed">Log konten pesan individual seluruh tenant disembunyikan untuk menjaga privasi pengguna. Admin hanya memantau statistik & antrean pengiriman.</p>
             </div>
@@ -155,14 +165,15 @@
     </div>
 
     <!-- SECTION: SEMUA PERANGKAT WA GLOBAL -->
-    <div id="devices-section" class="mono-card p-8 space-y-5">
+    <div id="devices-section" class="mono-card p-6 sm:p-8 space-y-5">
         <div class="flex items-center justify-between flex-wrap gap-3">
             <div>
                 <h3 class="text-base font-extrabold text-mono-50">Semua Perangkat WhatsApp Global</h3>
                 <p class="text-xs text-mono-400 mt-0.5">Monitoring status koneksi perangkat WhatsApp milik seluruh tenant</p>
             </div>
-            <button @click="loadDevices()" class="px-4 py-2 mono-btn-secondary text-xs font-bold transition shadow-sm">
-                🔄 Refresh
+            <button @click="loadDevices()" class="px-4 py-2 mono-btn-secondary text-xs font-bold transition shadow-sm inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                <span>Refresh</span>
             </button>
         </div>
 
