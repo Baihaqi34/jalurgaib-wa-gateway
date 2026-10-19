@@ -170,7 +170,7 @@
       scroll-behavior: smooth;
       font-size: 16px;
       overflow-x: hidden;
-      max-width: 100vw;
+      max-width: 100%;
     }
 
     body {
@@ -181,7 +181,7 @@
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
       width: 100%;
-      max-width: 100vw;
+      max-width: 100%;
       position: relative;
       transition: background-color 0.2s ease, color 0.2s ease;
     }
@@ -411,6 +411,8 @@
     .hero {
       padding: 70px 0 85px;
       position: relative;
+      width: 100%;
+      overflow: hidden;
     }
 
     .hero-grid {
@@ -418,10 +420,19 @@
       grid-template-columns: 1.15fr 0.85fr;
       gap: 44px;
       align-items: center;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .hero-grid > div {
+      min-width: 0;
+      max-width: 100%;
+      width: 100%;
     }
 
     .hero-title {
-      font-size: clamp(2rem, 5vw + 0.8rem, 3.25rem);
+      font-size: clamp(1.85rem, 3.8vw + 0.5rem, 3.25rem);
       font-weight: 800;
       line-height: 1.18;
       letter-spacing: -0.04em;
@@ -429,6 +440,7 @@
       margin-top: 18px;
       margin-bottom: 20px;
       word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .desktop-br {
@@ -446,6 +458,8 @@
       line-height: 1.68;
       margin-bottom: 30px;
       max-width: 580px;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .hero-buttons {
@@ -454,6 +468,9 @@
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 38px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
     /* Bento Stats Strip */
@@ -463,6 +480,9 @@
       gap: 12px;
       padding-top: 24px;
       border-top: 1px solid var(--border-subtle);
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
     .bento-stat-card {
@@ -471,6 +491,8 @@
       border-radius: var(--radius-md);
       padding: 14px 16px;
       transition: all 0.2s ease;
+      min-width: 0;
+      overflow: hidden;
     }
     .bento-stat-card:hover {
       border-color: var(--border-medium);
@@ -485,6 +507,9 @@
       display: block;
       line-height: 1.2;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     .bento-stat-lbl {
@@ -493,6 +518,9 @@
       font-weight: 600;
       margin-top: 4px;
       display: block;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     /* ==========================================================================
@@ -504,6 +532,9 @@
       border-radius: var(--radius-xl);
       overflow: hidden;
       box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
 
     .terminal-header {
@@ -548,6 +579,14 @@
       border-bottom: 1px solid var(--terminal-border);
       padding: 6px 14px 0;
       gap: 6px;
+      overflow-x: auto;
+      max-width: 100%;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .terminal-tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .terminal-tab-btn {
@@ -562,6 +601,7 @@
       cursor: pointer;
       border-radius: var(--radius-sm) var(--radius-sm) 0 0;
       transition: all 0.15s ease;
+      flex-shrink: 0;
     }
 
     .terminal-tab-btn:hover {
@@ -576,7 +616,7 @@
 
     .terminal-box {
       background-color: var(--terminal-bg);
-      padding: 20px;
+      padding: 16px 18px;
       font-family: var(--font-mono);
       font-size: 0.78rem;
       line-height: 1.65;
@@ -584,7 +624,9 @@
       max-height: 290px;
       overflow-y: auto;
       overflow-x: auto;
+      width: 100%;
       max-width: 100%;
+      min-width: 0;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -592,7 +634,8 @@
       font-family: inherit;
       white-space: pre;
       display: block;
-      min-width: min-content;
+      width: max-content;
+      max-width: 100%;
     }
 
     .terminal-notice {
@@ -1472,14 +1515,23 @@
       }
       
       .hero {
-        padding: 45px 0 65px;
+        padding: 40px 0 55px;
       }
       .hero-grid {
         grid-template-columns: 1fr;
-        gap: 36px;
+        gap: 32px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+      .hero-grid > div {
+        min-width: 0;
+        max-width: 100%;
+        width: 100%;
       }
       .hero-title {
-        font-size: clamp(2.1rem, 5vw + 0.5rem, 2.85rem);
+        font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+        line-height: 1.2;
       }
       .hero-desc {
         max-width: 100%;
@@ -1487,6 +1539,8 @@
       .hero-bento-strip {
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
+        width: 100%;
+        min-width: 0;
       }
 
       .features-grid {
@@ -1550,12 +1604,40 @@
         font-size: clamp(1.6rem, 4vw + 0.5rem, 2rem);
       }
 
+      .hero {
+        padding: 36px 0 50px;
+      }
+      .hero-title {
+        font-size: clamp(1.5rem, 5vw, 2.1rem);
+        line-height: 1.22;
+      }
+      .hero-desc {
+        font-size: 0.925rem;
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+      .hero-buttons .btn {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        padding: 12px 18px;
+        box-sizing: border-box;
+      }
+
       .hero-bento-strip {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
+        width: 100%;
+        min-width: 0;
       }
       .bento-stat-val {
-        font-size: 1.2rem;
+        font-size: 1.15rem;
       }
 
       .arch-flow-grid {
@@ -1630,43 +1712,52 @@
         padding: 42px 0;
       }
       .hero {
-        padding: 30px 0 45px;
+        padding: 24px 0 38px;
       }
       .hero-title {
-        font-size: clamp(1.7rem, 7vw, 2.2rem);
-        line-height: 1.2;
+        font-size: clamp(1.35rem, 6.2vw, 1.7rem);
+        line-height: 1.25;
+        letter-spacing: -0.03em;
+        margin-top: 14px;
+        margin-bottom: 14px;
       }
       .hero-desc {
-        font-size: 0.925rem;
-        margin-bottom: 22px;
+        font-size: 0.875rem;
+        line-height: 1.58;
+        margin-bottom: 20px;
       }
 
       .hero-buttons {
         flex-direction: column;
         width: 100%;
-        gap: 10px;
-        margin-bottom: 26px;
+        gap: 8px;
+        margin-bottom: 22px;
       }
       .hero-buttons .btn {
         width: 100%;
-        padding: 12px 18px;
+        padding: 11px 16px;
         font-size: 0.85rem;
         justify-content: center;
+        text-align: center;
+        box-sizing: border-box;
       }
 
       .hero-bento-strip {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        padding-top: 16px;
+        padding-top: 14px;
+        width: 100%;
+        min-width: 0;
       }
       .bento-stat-card {
-        padding: 10px 12px;
+        padding: 8px 10px;
+        min-width: 0;
       }
       .bento-stat-val {
-        font-size: 1.05rem;
+        font-size: 1rem;
       }
       .bento-stat-lbl {
-        font-size: 0.675rem;
+        font-size: 0.65rem;
       }
 
       .arch-flow-grid {
@@ -1722,6 +1813,20 @@
         width: 44px;
         height: 44px;
         font-size: 1.35rem;
+      }
+    }
+
+    /* ULTRA COMPACT MOBILE (max-width: 360px) */
+    @media (max-width: 360px) {
+      .container {
+        padding: 0 12px;
+      }
+      .hero-title {
+        font-size: 1.25rem;
+      }
+      .hero-bento-strip {
+        grid-template-columns: 1fr;
+        gap: 6px;
       }
     }
   </style>
