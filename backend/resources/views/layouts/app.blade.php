@@ -21,6 +21,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
+        window.submitWithLoading = window.submitWithLoading || function(msg) {
+            if (window.AppSwal && typeof window.AppSwal.loading === 'function') {
+                window.AppSwal.loading('Memproses...', msg);
+            }
+        };
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -776,6 +782,12 @@
                     }
                 });
                 return res.isConfirmed;
+            }
+        };
+
+        window.submitWithLoading = function(msg = 'Mohon tunggu sebentar...') {
+            if (window.AppSwal && typeof window.AppSwal.loading === 'function') {
+                window.AppSwal.loading('Memproses...', msg);
             }
         };
 
