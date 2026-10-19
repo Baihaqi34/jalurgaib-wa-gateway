@@ -17,6 +17,7 @@ class Package extends Model
         'price',
         'max_devices',
         'daily_message_limit',
+        'reset_cycle',
         'benefits',
         'status',
         'badge',
@@ -28,6 +29,7 @@ class Package extends Model
         'price'               => 'integer',
         'max_devices'         => 'integer',
         'daily_message_limit' => 'integer',
+        'reset_cycle'         => 'string',
         'sort_order'          => 'integer',
     ];
 
@@ -54,6 +56,27 @@ class Package extends Model
     public function isFree(): bool
     {
         return $this->price === 0;
+    }
+
+    public function isMonthly(): bool
+    {
+        return ($this->reset_cycle ?? 'daily') === 'monthly';
+    }
+
+    public function isDaily(): bool
+    {
+        return !$this->isMonthly();
+    }
+
+    public function getCycleLabelAttribute(): string
+    {
+        return $this->isMonthly() ? 'Bulan' : 'Hari';
+    }
+
+    public function getFormattedLimitAttribute(): string
+    {
+        $limit = number_format($this->daily_message_limit, 0, ',', '.');
+        return "{$limit} msg/" . ($this->isMonthly() ? 'bulan' : 'hari');
     }
 
     /**

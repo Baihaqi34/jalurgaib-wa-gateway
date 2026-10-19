@@ -20,6 +20,16 @@ class AdminUserController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
+        if (\Illuminate\Support\Facades\Schema::hasTable('packages') && !\Illuminate\Support\Facades\Schema::hasColumn('packages', 'reset_cycle')) {
+            try {
+                \Illuminate\Support\Facades\Schema::table('packages', function ($table) {
+                    $table->string('reset_cycle', 16)->default('daily')->after('daily_message_limit');
+                });
+            } catch (\Throwable $e) {
+                // Ignore if already added
+            }
+        }
+
         $query = User::with(['package'])
             ->withCount(['devices', 'apiKeys'])
             ->withCount(['devices as messages_count' => function ($q) {
@@ -41,11 +51,18 @@ class AdminUserController extends Controller
         $users = $query->latest()->paginate(15);
         $packages = \App\Models\Package::orderBy('sort_order')->get();
 
+        $kpis = [
+            'total_users'         => User::count(),
+            'active_users'        => User::where('status', '!=', 'suspended')->count(),
+            'suspended_users'     => User::where('status', 'suspended')->count(),
+            'total_messages_sent' => \App\Models\Message::count(),
+        ];
+
         if ($request->wantsJson() || $request->is('admin/api/*')) {
-            return response()->json(['success' => true, 'data' => $users]);
+            return response()->json(['success' => true, 'data' => $users, 'kpis' => $kpis]);
         }
 
-        return view('admin.users.index', compact('users', 'packages'));
+        return view('admin.users.index', compact('users', 'packages', 'kpis'));
     }
 
     /**

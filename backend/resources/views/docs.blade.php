@@ -20,7 +20,7 @@
 <div class="space-y-8 w-full" x-data="docsApp()">
 
     <!-- Overview Banner -->
-    <div class="mono-card p-8 w-full">
+    <div class="mono-card p-5 sm:p-7 w-full">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div class="space-y-2">
                 <div class="flex items-center gap-2">
@@ -55,7 +55,7 @@
     </div>
 
     <!-- 1. AUTENTIKASI -->
-    <div class="mono-card p-8 w-full space-y-4">
+    <div class="mono-card p-5 sm:p-7 w-full space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2">
             <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
                 <span>🔑</span> 1. Autentikasi Header API Key
@@ -77,7 +77,7 @@
     </div>
 
     <!-- 2. KHUSUS APLIKASI LARAVEL (HTTP CLIENT INTEGRATION) -->
-    <div class="mono-card p-8 w-full space-y-6">
+    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
         <div class="flex items-center justify-between flex-wrap gap-3">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-mono-800 border border-mono-700 text-mono-100 flex items-center justify-center font-bold text-xl shadow-sm">
@@ -197,7 +197,7 @@ class WhatsAppNotificationService
     </div>
 
     <!-- 3. ENDPOINT: KIRIM PESAN -->
-    <div class="mono-card p-8 w-full space-y-6">
+    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
         <div>
             <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
                 <span>💬</span> 3. Endpoint Pengiriman Pesan
@@ -267,7 +267,7 @@ class WhatsAppNotificationService
     </div>
 
     <!-- 4. ENDPOINT: KELOLA PERANGKAT -->
-    <div class="mono-card p-8 w-full space-y-6">
+    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
         <div>
             <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
                 <span>📱</span> 4. Endpoint Manajemen Perangkat WhatsApp
@@ -320,18 +320,18 @@ class WhatsAppNotificationService
     </div>
 
     <!-- 5. CONTOH KODE MULTI-BAHASA SDK -->
-    <div class="mono-card p-8 w-full space-y-5">
-        <div class="flex items-center justify-between flex-wrap gap-4">
+    <div class="mono-card p-5 sm:p-7 w-full space-y-5">
+        <div class="flex items-center justify-between flex-wrap gap-3">
             <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
                 <span>💻</span> 5. Contoh Kode Multi-Bahasa
             </h3>
             
-            <!-- Language Selector Tabs -->
-            <div class="flex gap-1.5 p-1 bg-mono-950 border border-mono-700 rounded-2xl shadow-inner">
-                <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition">cURL</button>
-                <button @click="selectedLang = 'js'" :class="selectedLang === 'js' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition">Node.js</button>
-                <button @click="selectedLang = 'php'" :class="selectedLang === 'php' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition">PHP</button>
-                <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition">Python</button>
+            <!-- Language Selector Tabs (Scrollable on mobile) -->
+            <div class="flex gap-1.5 p-1 bg-mono-950 border border-mono-700/80 rounded-2xl shadow-inner overflow-x-auto scrollbar-none max-w-full">
+                <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition whitespace-nowrap">cURL</button>
+                <button @click="selectedLang = 'js'" :class="selectedLang === 'js' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition whitespace-nowrap">Node.js</button>
+                <button @click="selectedLang = 'php'" :class="selectedLang === 'php' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition whitespace-nowrap">PHP</button>
+                <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3.5 py-1.5 rounded-xl text-xs transition whitespace-nowrap">Python</button>
             </div>
         </div>
 

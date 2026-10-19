@@ -7,25 +7,29 @@
 @section('content')
 <div x-data="packageCrudApp()" class="space-y-6">
 
-    <!-- Header Actions Toolbar -->
-    <div class="mono-card p-6">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <!-- Header Actions Toolbar (Unified 44px Control Bar) -->
+    <div class="mono-card p-4 sm:p-5">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
-                <h2 class="text-sm font-extrabold text-mono-50">Daftar Tier & Paket Layanan</h2>
-                <p class="text-xs text-mono-400 font-medium mt-0.5">Semua paket yang aktif akan otomatis memberlakukan limit perangkat & kuota harian kepada pengguna.</p>
+                <h2 class="text-sm font-extrabold text-mono-50 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-mono-400"></i>
+                    <span>Daftar Tier & Paket Layanan</span>
+                </h2>
+                <p class="text-xs text-mono-400 font-medium mt-0.5">Semua paket aktif otomatis memberlakukan kuota pesan dan limit nomor WA secara realtime.</p>
             </div>
 
-            <!-- Create Button -->
-            <button @click="openCreateModal()" class="w-full sm:w-auto px-5 py-2.5 mono-btn-primary text-xs font-bold flex items-center justify-center gap-2 shadow-sm">
-                <span>➕</span> Buat Paket Baru
+            <!-- Create Button (44px) -->
+            <button @click="openCreateModal()" class="h-11 px-5 rounded-xl mono-btn-primary text-xs font-extrabold inline-flex items-center justify-center gap-2 shadow-sm whitespace-nowrap shrink-0">
+                <i class="fa-solid fa-plus text-[11px]"></i>
+                <span>Buat Paket Baru</span>
             </button>
         </div>
     </div>
 
-    <!-- Package Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Package Cards Grid (Responsive 1/2/3 cols) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
         @forelse($packages as $pkg)
-            <div class="mono-card p-6 flex flex-col justify-between relative overflow-hidden transition hover:border-mono-500">
+            <div class="mono-card p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden transition hover:border-mono-500">
                 
                 <!-- Status Badge Corner -->
                 <div class="flex items-center justify-between gap-2 mb-4">
@@ -86,8 +90,13 @@
                             <div class="text-sm font-extrabold text-mono-100 mt-0.5">{{ $pkg->max_devices }} Nomor</div>
                         </div>
                         <div class="p-3 bg-mono-900 border border-mono-800 rounded-xl">
-                            <div class="text-[10px] text-mono-400 font-mono uppercase font-bold">Limit Pesan/Hari</div>
-                            <div class="text-sm font-extrabold text-mono-100 mt-0.5">{{ number_format($pkg->daily_message_limit, 0, ',', '.') }} Pesan</div>
+                            <div class="flex items-center justify-between text-[10px] text-mono-400 font-mono uppercase font-bold">
+                                <span>Limit Pesan</span>
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-mono {{ ($pkg->reset_cycle ?? 'daily') === 'monthly' ? 'bg-mono-100 text-mono-950 font-bold' : 'bg-mono-800 text-mono-300' }}">
+                                    {{ ($pkg->reset_cycle ?? 'daily') === 'monthly' ? 'Bulan' : 'Hari' }}
+                                </span>
+                            </div>
+                            <div class="text-sm font-extrabold text-mono-100 mt-0.5">{{ number_format($pkg->daily_message_limit, 0, ',', '.') }} msg/{{ $pkg->cycle_label ?? (($pkg->reset_cycle ?? 'daily') === 'monthly' ? 'bulan' : 'hari') }}</div>
                         </div>
                     </div>
 
@@ -138,9 +147,16 @@
 
     <!-- MODAL CREATE PACKAGE -->
     <div x-show="showCreateModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity>
-        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto" @click.outside="showCreateModal = false">
-            <h3 class="text-base font-extrabold text-mono-50 mb-1">➕ Buat Paket Baru</h3>
-            <p class="text-xs text-mono-400 mb-5 font-medium">Buat paket baru untuk kebutuhan Starter, Pro, Enterprise, atau Coming Soon</p>
+        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto scrollbar-thin" @click.outside="showCreateModal = false">
+            <div class="flex items-center justify-between pb-4 border-b border-mono-800 mb-5">
+                <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-mono-50">➕ Buat Paket Baru</h3>
+                    <p class="text-xs text-mono-400 font-medium mt-0.5">Atur kuota pesan harian/bulanan dan slot device</p>
+                </div>
+                <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-xl bg-mono-800 hover:bg-mono-700 text-mono-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
 
             <form action="{{ route('admin.packages.store') }}" method="POST" @submit="submitWithLoading('Menyimpan paket baru...')" class="space-y-4 text-xs">
                 @csrf
@@ -156,18 +172,29 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Harga (Rp)</label>
                         <input type="number" name="price" required min="0" value="0" placeholder="0 untuk Gratis" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                     <div>
-                        <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat</label>
+                        <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat (Slot)</label>
                         <input type="number" name="max_devices" required min="1" max="100" value="2" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-mono-300 font-bold mb-1.5">Limit Pesan/Hari</label>
-                        <input type="number" name="daily_message_limit" required min="1" value="50" class="w-full mono-input px-4 py-2.5 font-medium">
+                        <label class="block text-mono-300 font-bold mb-1.5">Batas Kuota Pesan</label>
+                        <input type="number" name="daily_message_limit" required min="1" value="50" placeholder="Contoh: 1000" class="w-full mono-input px-4 py-2.5 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-mono-300 font-bold mb-1.5">Siklus Reset Kuota</label>
+                        <select name="reset_cycle" required class="w-full mono-input px-4 py-2.5 font-medium">
+                            <option value="monthly" selected>📅 Bulanan (Reset awal bulan - Hemat / Aman)</option>
+                            <option value="daily">⏰ Harian (Reset tiap 00:00 WIB)</option>
+                        </select>
+                        <p class="text-[10px] text-mono-400 mt-1">Pilih Bulanan agar kuota dihitung per 30 hari/kalender (tidak boncos).</p>
                     </div>
                 </div>
 
@@ -207,9 +234,16 @@
 
     <!-- MODAL EDIT PACKAGE -->
     <div x-show="showEditModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity>
-        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto" @click.outside="showEditModal = false">
-            <h3 class="text-base font-extrabold text-mono-50 mb-1">✏️ Edit Paket Layanan</h3>
-            <p class="text-xs text-mono-400 mb-5 font-medium">Ubah batasan kuota, status paket, dan daftar benefit</p>
+        <div class="bg-mono-900 border border-mono-700 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto scrollbar-thin" @click.outside="showEditModal = false">
+            <div class="flex items-center justify-between pb-4 border-b border-mono-800 mb-5">
+                <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-mono-50">✏️ Edit Paket Layanan</h3>
+                    <p class="text-xs text-mono-400 font-medium mt-0.5">Ubah batas kuota, siklus reset, dan benefit paket</p>
+                </div>
+                <button type="button" @click="showEditModal = false" class="w-8 h-8 rounded-xl bg-mono-800 hover:bg-mono-700 text-mono-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
 
             <form :action="editActionUrl" method="POST" @submit="submitWithLoading('Menyimpan perubahan...')" class="space-y-4 text-xs">
                 @csrf
@@ -226,18 +260,29 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Harga (Rp)</label>
                         <input type="number" name="price" x-model="editForm.price" required min="0" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                     <div>
-                        <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat</label>
+                        <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat (Slot)</label>
                         <input type="number" name="max_devices" x-model="editForm.max_devices" required min="1" max="100" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-mono-300 font-bold mb-1.5">Limit Pesan/Hari</label>
+                        <label class="block text-mono-300 font-bold mb-1.5">Batas Kuota Pesan</label>
                         <input type="number" name="daily_message_limit" x-model="editForm.daily_message_limit" required min="1" class="w-full mono-input px-4 py-2.5 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-mono-300 font-bold mb-1.5">Siklus Reset Kuota</label>
+                        <select name="reset_cycle" x-model="editForm.reset_cycle" required class="w-full mono-input px-4 py-2.5 font-medium">
+                            <option value="monthly">📅 Bulanan (Reset awal bulan - Hemat / Aman)</option>
+                            <option value="daily">⏰ Harian (Reset tiap 00:00 WIB)</option>
+                        </select>
+                        <p class="text-[10px] text-mono-400 mt-1">Gunakan Bulanan untuk mencegah lonjakan pengiriman gratis tiap 24 jam.</p>
                     </div>
                 </div>
 
@@ -290,6 +335,7 @@
                 price: 0,
                 max_devices: 2,
                 daily_message_limit: 50,
+                reset_cycle: 'monthly',
                 status: 'active',
                 badge: '',
                 benefits_text: ''
@@ -314,6 +360,7 @@
                     price: pkg.price || 0,
                     max_devices: pkg.max_devices || 2,
                     daily_message_limit: pkg.daily_message_limit || 50,
+                    reset_cycle: pkg.reset_cycle || 'daily',
                     status: pkg.status || 'active',
                     badge: pkg.badge || '',
                     benefits_text: benefitsText

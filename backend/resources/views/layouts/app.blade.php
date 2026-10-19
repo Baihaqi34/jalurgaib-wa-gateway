@@ -6,6 +6,28 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="api-key" content="{{ auth()->check() ? auth()->user()->getOrCreateApiKey() : '' }}">
     <title>@yield('title', 'JalurGaib WA Gateway')</title>
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+    <meta name="theme-color" content="#09090b">
+
+    <!-- SEO Meta Engine -->
+    @hasSection('meta')
+        @yield('meta')
+    @else
+        @if(request()->routeIs('docs'))
+            <meta name="description" content="Dokumentasi resmi integrasi REST API WhatsApp Gateway JalurGaib. Panduan lengkap Laravel, cURL, Node.js, PHP, dan Python dengan webhook real-time.">
+            <meta name="robots" content="index, follow">
+            <link rel="canonical" href="{{ url('/docs') }}">
+        @else
+            <meta name="robots" content="noindex, nofollow">
+        @endif
+    @endif
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->

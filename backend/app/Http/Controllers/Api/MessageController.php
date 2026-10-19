@@ -64,16 +64,19 @@ class MessageController extends Controller
             ], 422);
         }
 
-        // 🔒 Enforce Daily Message Limit based on user's active package
+        // 🔒 Enforce Message Limit based on user's active package (Daily or Monthly)
         if (!$user->canSendMessages(1)) {
             $pkg = $user->getPackage();
+            $periodLabel = $user->isMonthlyLimit() ? 'bulanan' : 'harian';
+            $resetTime = $user->isMonthlyLimit() ? 'awal bulan berikutnya' : 'pukul 00:00 WIB setiap hari';
             return response()->json([
                 'success'         => false,
-                'message'         => "Kuota pesan harian untuk paket {$pkg->name} (Maks {$user->getDailyMessageLimit()} pesan/hari) telah habis. Kuota di-reset setiap pukul 00:00 WIB.",
-                'error_code'      => 'DAILY_MESSAGE_LIMIT_REACHED',
-                'daily_limit'     => $user->getDailyMessageLimit(),
-                'used_today'      => $user->getTodaySentMessagesCount(),
-                'remaining_today' => $user->getRemainingDailyMessages(),
+                'message'         => "Kuota pesan {$periodLabel} untuk paket {$pkg->name} (Maks {$user->getMessageLimit()} pesan/{$pkg->cycle_label}) telah habis. Kuota di-reset pada {$resetTime}.",
+                'error_code'      => $user->isMonthlyLimit() ? 'MONTHLY_MESSAGE_LIMIT_REACHED' : 'DAILY_MESSAGE_LIMIT_REACHED',
+                'limit'           => $user->getMessageLimit(),
+                'used'            => $user->getCurrentCycleSentMessagesCount(),
+                'remaining'       => $user->getRemainingMessages(),
+                'cycle'           => $user->getLimitCycle(),
             ], 429);
         }
 
@@ -170,17 +173,19 @@ class MessageController extends Controller
 
         $recipientCount = count($validated['recipients']);
 
-        // 🔒 Enforce Daily Message Limit for Bulk sending
+        // 🔒 Enforce Message Limit for Bulk sending (Daily or Monthly)
         if (!$user->canSendMessages($recipientCount)) {
             $pkg = $user->getPackage();
-            $remaining = $user->getRemainingDailyMessages();
+            $remaining = $user->getRemainingMessages();
+            $periodLabel = $user->isMonthlyLimit() ? 'bulanan' : 'harian';
             return response()->json([
                 'success'         => false,
-                'message'         => "Pengiriman batch ({$recipientCount} pesan) melebihi sisa kuota harian paket {$pkg->name} ({$remaining} tersisa dari {$user->getDailyMessageLimit()}/hari).",
-                'error_code'      => 'DAILY_MESSAGE_LIMIT_EXCEEDED',
-                'daily_limit'     => $user->getDailyMessageLimit(),
-                'used_today'      => $user->getTodaySentMessagesCount(),
-                'remaining_today' => $remaining,
+                'message'         => "Pengiriman batch ({$recipientCount} pesan) melebihi sisa kuota {$periodLabel} paket {$pkg->name} ({$remaining} tersisa dari {$user->getMessageLimit()}/{$pkg->cycle_label}).",
+                'error_code'      => $user->isMonthlyLimit() ? 'MONTHLY_MESSAGE_LIMIT_EXCEEDED' : 'DAILY_MESSAGE_LIMIT_EXCEEDED',
+                'limit'           => $user->getMessageLimit(),
+                'used'            => $user->getCurrentCycleSentMessagesCount(),
+                'remaining'       => $remaining,
+                'cycle'           => $user->getLimitCycle(),
                 'requested_count' => $recipientCount,
             ], 429);
         }

@@ -17,6 +17,16 @@ class AdminPackageController extends Controller
      */
     public function index(): View
     {
+        if (\Illuminate\Support\Facades\Schema::hasTable('packages') && !\Illuminate\Support\Facades\Schema::hasColumn('packages', 'reset_cycle')) {
+            try {
+                \Illuminate\Support\Facades\Schema::table('packages', function ($table) {
+                    $table->string('reset_cycle', 16)->default('daily')->after('daily_message_limit');
+                });
+            } catch (\Throwable $e) {
+                // Ignore if already added
+            }
+        }
+
         $packages = Package::withCount('users')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
@@ -37,6 +47,7 @@ class AdminPackageController extends Controller
             'price'               => 'required|integer|min:0',
             'max_devices'         => 'required|integer|min:1|max:100',
             'daily_message_limit' => 'required|integer|min:1|max:1000000',
+            'reset_cycle'         => 'nullable|in:daily,monthly',
             'benefits'            => 'nullable|string', // raw multiline text
             'status'              => 'required|in:active,coming_soon,inactive',
             'badge'               => 'nullable|string|max:50',
@@ -65,6 +76,7 @@ class AdminPackageController extends Controller
             'price'               => $validated['price'],
             'max_devices'         => $validated['max_devices'],
             'daily_message_limit' => $validated['daily_message_limit'],
+            'reset_cycle'         => $validated['reset_cycle'] ?? 'daily',
             'benefits'            => $benefitsArray,
             'status'              => $validated['status'],
             'badge'               => $validated['badge'] ?? null,
@@ -87,6 +99,7 @@ class AdminPackageController extends Controller
             'price'               => 'required|integer|min:0',
             'max_devices'         => 'required|integer|min:1|max:100',
             'daily_message_limit' => 'required|integer|min:1|max:1000000',
+            'reset_cycle'         => 'nullable|in:daily,monthly',
             'benefits'            => 'nullable|string',
             'status'              => 'required|in:active,coming_soon,inactive',
             'badge'               => 'nullable|string|max:50',
@@ -102,6 +115,7 @@ class AdminPackageController extends Controller
             'price'               => $validated['price'],
             'max_devices'         => $validated['max_devices'],
             'daily_message_limit' => $validated['daily_message_limit'],
+            'reset_cycle'         => $validated['reset_cycle'] ?? 'daily',
             'benefits'            => $benefitsArray,
             'status'              => $validated['status'],
             'badge'               => $validated['badge'] ?? null,

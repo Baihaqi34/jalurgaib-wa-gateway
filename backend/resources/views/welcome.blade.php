@@ -4,7 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JalurGaib — Managed WhatsApp Gateway Cloud & Anti-Banned Engine</title>
-  <meta name="description" content="JalurGaib adalah platform Managed WhatsApp Gateway Cloud modern. Kirim notifikasi, OTP, dan broadcast otomatis dengan proteksi ritme pengetikan manusiawi dan multi-session yang handal.">
+  
+  <!-- SEO Primary Meta Tags -->
+  <meta name="title" content="JalurGaib — Managed WhatsApp Gateway Cloud & Anti-Banned Engine">
+  <meta name="description" content="Platform Managed WhatsApp Gateway Cloud modern di Indonesia. Kirim notifikasi, OTP, tagihan, dan broadcast otomatis dengan proteksi antrean cerdas, webhook, dan multi-session stabil.">
+  <meta name="keywords" content="whatsapp gateway, wa gateway indonesia, rest api whatsapp, whatsapp blast, otp whatsapp, webhook whatsapp, whatsmeow, baileys, api wa murah, anti ban wa, jalurgaib">
+  <meta name="author" content="JalurGaib">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  <link rel="canonical" href="{{ url('/') }}">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo.png') }}">
+  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+  <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+  <meta name="theme-color" content="#09090b">
+
+  <!-- Open Graph / Facebook / WhatsApp Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:url" content="{{ url('/') }}">
+  <meta property="og:site_name" content="JalurGaib WA Gateway">
+  <meta property="og:title" content="JalurGaib — Managed WhatsApp Gateway Cloud & Anti-Banned Engine">
+  <meta property="og:description" content="Platform Managed WhatsApp Gateway Cloud modern di Indonesia. Kirim notifikasi, OTP, dan broadcast otomatis dengan proteksi antrean cerdas dan multi-session stabil.">
+  <meta property="og:image" content="{{ asset('images/logo.png') }}">
+  <meta property="og:image:secure_url" content="{{ asset('images/logo.png') }}">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="JalurGaib Logo">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="{{ url('/') }}">
+  <meta name="twitter:title" content="JalurGaib — Managed WhatsApp Gateway Cloud & Anti-Banned Engine">
+  <meta name="twitter:description" content="Kirim notifikasi, OTP, dan broadcast otomatis dengan proteksi ritme pengetikan manusiawi dan multi-session yang handal.">
+  <meta name="twitter:image" content="{{ asset('images/logo.png') }}">
+
+  <!-- Google Structured Data (Schema.org JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "{{ url('/') }}/#organization",
+        "name": "JalurGaib WA Gateway",
+        "url": "{{ url('/') }}",
+        "logo": "{{ asset('images/logo.png') }}",
+        "description": "Penyedia layanan Managed WhatsApp Gateway Cloud dan Anti-Banned Engine di Indonesia."
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "{{ url('/') }}/#webapp",
+        "name": "JalurGaib WhatsApp Gateway",
+        "url": "{{ url('/') }}",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "description": "Kirimkan pesan WhatsApp notifikasi, OTP, dan broadcast dari aplikasi backend via REST API.",
+        "publisher": {
+          "@id": "{{ url('/') }}/#organization"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "IDR"
+        }
+      }
+    ]
+  }
+  </script>
 
   <!-- Typography: Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,7 +159,7 @@
       --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.7);
     }
 
-    /* Reset & Base */
+    /* Reset & Base - Strict Zero Horizontal Overflow Guarantee */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -98,6 +169,8 @@
     html {
       scroll-behavior: smooth;
       font-size: 16px;
+      overflow-x: hidden;
+      max-width: 100vw;
     }
 
     body {
@@ -107,7 +180,16 @@
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      width: 100%;
+      max-width: 100vw;
+      position: relative;
       transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    img, svg, video, canvas, audio, iframe, embed, object {
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
 
     .bg-grid {
@@ -339,17 +421,27 @@
     }
 
     .hero-title {
-      font-size: 3.25rem;
+      font-size: clamp(2rem, 5vw + 0.8rem, 3.25rem);
       font-weight: 800;
-      line-height: 1.15;
+      line-height: 1.18;
       letter-spacing: -0.04em;
       color: var(--text-primary);
       margin-top: 18px;
       margin-bottom: 20px;
+      word-break: break-word;
+    }
+
+    .desktop-br {
+      display: inline;
+    }
+    @media (max-width: 768px) {
+      .desktop-br {
+        display: none;
+      }
     }
 
     .hero-desc {
-      font-size: 1.05rem;
+      font-size: clamp(0.925rem, 2vw + 0.5rem, 1.05rem);
       color: var(--text-secondary);
       line-height: 1.68;
       margin-bottom: 30px;
@@ -491,11 +583,16 @@
       color: var(--terminal-text);
       max-height: 290px;
       overflow-y: auto;
+      overflow-x: auto;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
     }
 
     .terminal-box code {
       font-family: inherit;
       white-space: pre;
+      display: block;
+      min-width: min-content;
     }
 
     .terminal-notice {
@@ -982,6 +1079,9 @@
       color: var(--terminal-text);
       overflow-x: auto;
       white-space: pre;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+      display: block;
     }
 
     /* ==========================================================================
@@ -1070,6 +1170,24 @@
       color: var(--text-secondary);
       max-width: 580px;
       margin: 0 auto 28px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 480px) {
+      .cta-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+      }
+      .cta-buttons .btn {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     /* ==========================================================================
@@ -1185,31 +1303,425 @@
       box-shadow: 0 8px 20px rgba(37, 211, 102, 0.45);
     }
 
-    /* Responsive */
+    /* ==========================================================================
+       MOBILE MENU BUTTON & SLIDE-OUT DRAWER (Monochromatic Quiet Luxury)
+       ========================================================================== */
+    .mobile-menu-btn {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu-btn:hover {
+      background-color: var(--bg-surface-elevated);
+      border-color: var(--border-medium);
+    }
+
+    .mobile-nav-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(9, 9, 11, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1998;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-nav-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-nav-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 86%;
+      max-width: 350px;
+      background-color: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      z-index: 1999;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow-y: auto;
+    }
+    .mobile-nav-drawer.active {
+      transform: translateX(0);
+    }
+
+    .mobile-drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .mobile-drawer-close {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.15s ease;
+    }
+    .mobile-drawer-close:hover {
+      background: var(--text-primary);
+      color: var(--bg-surface);
+    }
+
+    .mobile-drawer-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .mobile-nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mobile-nav-links a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.15s ease;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+    .mobile-nav-links a:hover, .mobile-nav-links a:active {
+      background-color: var(--bg-surface-elevated);
+      border-color: var(--border-subtle);
+      transform: translateX(3px);
+    }
+
+    .mobile-drawer-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .btn-block {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE MULTI-TIER BREAKPOINTS (Noir Quiet Luxury Standard)
+       Zero Horizontal Overflow & Clean Fluid Scaling
+       ========================================================================== */
+
+    /* TABLET & LAPTOP LANDSCAPE (max-width: 1199px) */
+    @media (max-width: 1199px) {
+      .container {
+        padding: 0 20px;
+      }
+      .hero-grid {
+        gap: 32px;
+      }
+      .arch-flow-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* TABLET PORTRAIT (max-width: 992px) */
     @media (max-width: 992px) {
-      .hero-grid, .pricing-grid, .features-grid, .arch-flow-grid, .testimonials-bento {
+      .nav-links {
+        display: none !important;
+      }
+      .desktop-only-btn {
+        display: none !important;
+      }
+      .mobile-menu-btn {
+        display: inline-flex !important;
+      }
+      
+      .hero {
+        padding: 45px 0 65px;
+      }
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+      .hero-title {
+        font-size: clamp(2.1rem, 5vw + 0.5rem, 2.85rem);
+      }
+      .hero-desc {
+        max-width: 100%;
+      }
+      .hero-bento-strip {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+
+      .arch-flow-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .testimonials-bento {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+      .testimonial-bento-hero {
+        grid-column: span 2;
+        padding: 24px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .t-hero-stats {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+      .pricing-grid .price-card:last-child {
+        grid-column: span 2;
+        max-width: 600px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+      }
+
+      .terminal-box {
+        max-height: 270px;
+      }
+    }
+
+    /* MOBILE STANDARD (max-width: 768px) */
+    @media (max-width: 768px) {
+      .section-padding {
+        padding: 55px 0;
+      }
+      .section-header {
+        margin-bottom: 34px;
+      }
+      .section-title {
+        font-size: clamp(1.6rem, 4vw + 0.5rem, 2rem);
+      }
+
+      .hero-bento-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .bento-stat-val {
+        font-size: 1.2rem;
+      }
+
+      .arch-flow-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+      .pricing-grid .price-card:last-child {
+        grid-column: span 1;
+        max-width: 100%;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonials-bento {
         grid-template-columns: 1fr;
       }
       .testimonial-bento-hero {
         grid-column: span 1;
-        flex-direction: column;
-        align-items: flex-start;
       }
       .t-hero-stats {
-        flex-direction: column;
-        gap: 16px;
+        grid-template-columns: 1fr;
+        gap: 14px;
       }
-      .hero-bento-strip {
-        grid-template-columns: repeat(2, 1fr);
+
+      .arch-wrapper {
+        padding: 22px 16px;
       }
+
+      .cta-banner {
+        padding: 38px 20px;
+      }
+      .cta-banner-title {
+        font-size: 1.75rem;
+      }
+
       .footer-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 28px;
       }
-      .nav-links {
+      .footer-bottom {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+
+      /* Horizontal scrolling for tabs so they never push the viewport */
+      .terminal-tabs, .sdk-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .terminal-tabs::-webkit-scrollbar, .sdk-tabs::-webkit-scrollbar {
         display: none;
       }
+      .terminal-tab-btn, .sdk-tab {
+        flex-shrink: 0;
+      }
+    }
+
+    /* MOBILE COMPACT (max-width: 480px) */
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 16px;
+      }
+      .section-padding {
+        padding: 42px 0;
+      }
+      .hero {
+        padding: 30px 0 45px;
+      }
       .hero-title {
-        font-size: 2.4rem;
+        font-size: clamp(1.7rem, 7vw, 2.2rem);
+        line-height: 1.2;
+      }
+      .hero-desc {
+        font-size: 0.925rem;
+        margin-bottom: 22px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+      .hero-buttons .btn {
+        width: 100%;
+        padding: 12px 18px;
+        font-size: 0.85rem;
+        justify-content: center;
+      }
+
+      .hero-bento-strip {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding-top: 16px;
+      }
+      .bento-stat-card {
+        padding: 10px 12px;
+      }
+      .bento-stat-val {
+        font-size: 1.05rem;
+      }
+      .bento-stat-lbl {
+        font-size: 0.675rem;
+      }
+
+      .arch-flow-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .terminal-box {
+        padding: 14px;
+        font-size: 0.72rem;
+      }
+      .terminal-header {
+        padding: 10px 14px;
+      }
+      .terminal-badge {
+        font-size: 0.65rem;
+        padding: 2px 7px;
+      }
+
+      .sdk-body {
+        padding: 16px 14px;
+      }
+      .code-block {
+        font-size: 0.75rem;
+      }
+
+      .price-card {
+        padding: 22px 16px;
+      }
+      .price-amount {
+        font-size: 1.85rem;
+      }
+
+      .cta-banner {
+        padding: 30px 16px;
+      }
+      .cta-banner-title {
+        font-size: 1.45rem;
+      }
+      .cta-banner-desc {
+        font-size: 0.875rem;
+      }
+
+      /* Floating WhatsApp Button on small mobile */
+      .wa-cs-floating {
+        bottom: 16px;
+        right: 16px;
+      }
+      .wa-cs-tooltip {
+        display: none !important;
+      }
+      .wa-cs-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.35rem;
       }
     }
   </style>
@@ -1242,25 +1754,84 @@
 
         @auth
           @if(Auth::user()->isAdmin())
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-sm">
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-sm desktop-only-btn">
               Admin Panel →
             </a>
           @else
-            <a href="{{ route('user.dashboard') }}" class="btn btn-primary btn-sm">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-primary btn-sm desktop-only-btn">
               Dashboard ({{ Auth::user()->name }}) →
             </a>
           @endif
         @else
-          <a href="{{ route('login') }}" class="btn btn-ghost btn-sm">
+          <a href="{{ route('login') }}" class="btn btn-ghost btn-sm desktop-only-btn">
             Masuk
           </a>
-          <a href="{{ route('register') }}" class="btn btn-primary btn-sm">
+          <a href="{{ route('register') }}" class="btn btn-primary btn-sm desktop-only-btn">
             Daftar Gratis
           </a>
         @endauth
+
+        <!-- Mobile Menu Hamburger Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka Menu Navigasi" onclick="toggleMobileMenu()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile Navigation Overlay & Slide-Out Drawer -->
+  <div id="mobileNavOverlay" class="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
+
+  <div id="mobileNavDrawer" class="mobile-nav-drawer" aria-hidden="true">
+    <div class="mobile-drawer-header">
+      <a href="{{ route('landing') }}" class="brand-logo" onclick="toggleMobileMenu()">
+        <div class="brand-icon">
+          <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo">
+        </div>
+        <span class="brand-name">JalurGaib</span>
+      </a>
+      <button class="mobile-drawer-close" onclick="toggleMobileMenu()" aria-label="Tutup Menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="mobile-drawer-body">
+      <ul class="mobile-nav-links">
+        <li><a href="#fitur" onclick="toggleMobileMenu()"><i class="fa-solid fa-bolt" style="width: 20px; color: var(--text-muted);"></i> <span>Fitur Cloud Engine</span></a></li>
+        <li><a href="#arsitektur" onclick="toggleMobileMenu()"><i class="fa-solid fa-network-wired" style="width: 20px; color: var(--text-muted);"></i> <span>Arsitektur Pipeline</span></a></li>
+        <li><a href="#testimoni" onclick="toggleMobileMenu()"><i class="fa-solid fa-star" style="width: 20px; color: var(--text-muted);"></i> <span>Ulasan Klien</span></a></li>
+        <li><a href="#harga" onclick="toggleMobileMenu()"><i class="fa-solid fa-tags" style="width: 20px; color: var(--text-muted);"></i> <span>Paket Kuota</span></a></li>
+        <li><a href="#sdk" onclick="toggleMobileMenu()"><i class="fa-solid fa-code" style="width: 20px; color: var(--text-muted);"></i> <span>Contoh API & SDK</span></a></li>
+        <li><a href="#faq" onclick="toggleMobileMenu()"><i class="fa-solid fa-circle-question" style="width: 20px; color: var(--text-muted);"></i> <span>Tanya Jawab (FAQ)</span></a></li>
+      </ul>
+
+      <div class="mobile-drawer-actions">
+        @auth
+          @if(Auth::user()->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-block">
+              Admin Panel →
+            </a>
+          @else
+            <a href="{{ route('user.dashboard') }}" class="btn btn-primary btn-block">
+              Buka Dashboard ({{ Auth::user()->name }}) →
+            </a>
+          @endif
+        @else
+          <a href="{{ route('register') }}" class="btn btn-primary btn-block">
+            Mulai Kuota Gratis 🚀
+          </a>
+          <a href="{{ route('login') }}" class="btn btn-secondary btn-block">
+            Masuk ke Akun
+          </a>
+        @endauth
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
+          <span>Ganti Mode Gelap / Terang</span>
+          <button class="theme-toggle-btn" onclick="toggleTheme()" title="Ganti Mode Tampilan">◐</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- HERO SECTION -->
   <section class="hero">
@@ -1274,8 +1845,8 @@
           </div>
 
           <h1 class="hero-title">
-            Gateway WhatsApp <br>
-            JalurGaib.<br>
+            Gateway WhatsApp <br class="desktop-br">
+            JalurGaib. <br class="desktop-br">
             Kirim Notifikasi Tanpa Ribet Banned.
           </h1>
 
@@ -1844,7 +2415,7 @@ if ($response->successful()) {
         <p class="cta-banner-desc">
           Daftar akun gratis sekarang dan tautkan nomor WhatsApp bisnis Anda dalam waktu kurang dari 2 menit.
         </p>
-        <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+        <div class="cta-buttons">
           @auth
             <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}" class="btn btn-primary">
               Buka Dashboard Saya →
@@ -2048,6 +2619,26 @@ print(res.json())`
       document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));
       if (!isActive) {
         el.classList.add('active');
+      }
+    }
+
+    // Mobile Navigation Drawer Toggle (Zero Overflow & Body Lock)
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileNavDrawer');
+      const overlay = document.getElementById('mobileNavOverlay');
+      if (!drawer || !overlay) return;
+
+      const isOpen = drawer.classList.contains('active');
+      if (isOpen) {
+        drawer.classList.remove('active');
+        overlay.classList.remove('active');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      } else {
+        drawer.classList.add('active');
+        overlay.classList.add('active');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
       }
     }
   </script>

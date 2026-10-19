@@ -39,11 +39,11 @@
             <span>Dashboard Global</span>
         </a>
 
-        <!-- Manajemen Pengguna (CRUD) -->
+        <!-- Users -->
         <a href="{{ route('admin.users.index') }}"
            class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.users.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
             <i class="fa-solid fa-users text-sm w-4 text-center {{ request()->routeIs('admin.users.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
-            <span>Data Pengguna (CRUD)</span>
+            <span>Users</span>
         </a>
 
         <!-- Manajemen Paket & Tier (CRUD) -->

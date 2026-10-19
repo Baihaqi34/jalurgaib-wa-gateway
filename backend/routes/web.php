@@ -29,6 +29,15 @@ Route::get('/', function () {
         @include_once public_path('process_logo.php');
     }
 
+    $favPath = public_path('favicon.ico');
+    if (!file_exists($favPath) || filesize($favPath) < 100) {
+        if (file_exists(public_path('images/logo.png'))) {
+            @copy(public_path('images/logo.png'), $favPath);
+            @copy(public_path('images/logo.png'), public_path('favicon.png'));
+            @copy(public_path('images/logo.png'), public_path('apple-touch-icon.png'));
+        }
+    }
+
     $packages = \App\Models\Package::whereIn('status', ['active', 'coming_soon'])
         ->orderBy('sort_order', 'asc')
         ->orderBy('id', 'asc')
@@ -99,6 +108,66 @@ Route::get('images/{filename}', function ($filename) {
 
     return abort(404);
 })->where('filename', '.*');
+
+// Favicon & SEO Assets direct handler
+Route::get('favicon.ico', function () {
+    $icoPath = public_path('favicon.ico');
+    $logoPath = public_path('images/logo.png');
+
+    if (!file_exists($icoPath) || filesize($icoPath) < 100) {
+        if (file_exists($logoPath)) {
+            @copy($logoPath, $icoPath);
+        }
+    }
+
+    if (file_exists($icoPath) && filesize($icoPath) > 0) {
+        return response()->file($icoPath, [
+            'Content-Type'  => 'image/x-icon',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
+    }
+
+    if (file_exists($logoPath)) {
+        return response()->file($logoPath, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
+    }
+
+    return abort(404);
+});
+
+Route::get('favicon.png', function () {
+    $logoPath = public_path('images/logo.png');
+    if (file_exists($logoPath)) {
+        return response()->file($logoPath, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
+    }
+    return abort(404);
+});
+
+Route::get('apple-touch-icon.png', function () {
+    $logoPath = public_path('images/logo.png');
+    if (file_exists($logoPath)) {
+        return response()->file($logoPath, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
+    }
+    return abort(404);
+});
+
+Route::get('sitemap.xml', function () {
+    $path = public_path('sitemap.xml');
+    if (file_exists($path)) {
+        return response()->file($path, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
+    }
+    return abort(404);
+});
 // Route::get('/coba', function () {
 
 //     $response = Http::withHeaders([

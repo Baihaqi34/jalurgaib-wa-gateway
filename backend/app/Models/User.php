@@ -87,12 +87,27 @@ class User extends Authenticatable
         return $this->getPackage()->max_devices ?? 2;
     }
 
-    public function getDailyMessageLimit(): int
+    public function getMessageLimit(): int
     {
         if ($this->isAdmin()) {
             return 999999;
         }
         return $this->getPackage()->daily_message_limit ?? 50;
+    }
+
+    public function getDailyMessageLimit(): int
+    {
+        return $this->getMessageLimit();
+    }
+
+    public function getLimitCycle(): string
+    {
+        return $this->getPackage()->reset_cycle ?? 'daily';
+    }
+
+    public function isMonthlyLimit(): bool
+    {
+        return $this->getLimitCycle() === 'monthly';
     }
 
     public function canAddDevice(): bool
@@ -104,21 +119,37 @@ class User extends Authenticatable
         return $currentDevicesCount < $this->getMaxDevices();
     }
 
-    public function getTodaySentMessagesCount(): int
+    public function getCurrentCycleSentMessagesCount(): int
     {
-        return Message::whereHas('device', fn($q) => $q->where('user_id', $this->id))
-            ->whereDate('created_at', today())
-            ->count();
+        $query = Message::whereHas('device', fn($q) => $q->where('user_id', $this->id));
+
+        if ($this->isMonthlyLimit()) {
+            return $query->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count();
+        }
+
+        return $query->whereDate('created_at', today())->count();
     }
 
-    public function getRemainingDailyMessages(): int
+    public function getTodaySentMessagesCount(): int
+    {
+        return $this->getCurrentCycleSentMessagesCount();
+    }
+
+    public function getRemainingMessages(): int
     {
         if ($this->isAdmin()) {
             return 999999;
         }
-        $limit = $this->getDailyMessageLimit();
-        $used = $this->getTodaySentMessagesCount();
+        $limit = $this->getMessageLimit();
+        $used = $this->getCurrentCycleSentMessagesCount();
         return max(0, $limit - $used);
+    }
+
+    public function getRemainingDailyMessages(): int
+    {
+        return $this->getRemainingMessages();
     }
 
     public function canSendMessages(int $count = 1): bool
@@ -126,7 +157,7 @@ class User extends Authenticatable
         if ($this->isAdmin()) {
             return true;
         }
-        return ($this->getTodaySentMessagesCount() + $count) <= $this->getDailyMessageLimit();
+        return ($this->getCurrentCycleSentMessagesCount() + $count) <= $this->getMessageLimit();
     }
 
     public function devices(): HasMany

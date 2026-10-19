@@ -13,9 +13,9 @@
                 <span>JalurGaib</span>
                 <span class="text-mono-600">/</span>
             </div>
-            <div class="min-w-0 flex-shrink-0">
-                <h2 class="text-xs sm:text-sm font-extrabold text-mono-50 tracking-tight flex items-center gap-2 whitespace-nowrap">
-                    <span>@yield('header_title', 'Dashboard Overview')</span>
+            <div class="min-w-0">
+                <h2 class="text-xs sm:text-sm font-extrabold text-mono-50 tracking-tight flex items-center gap-2 truncate max-w-[135px] xs:max-w-[180px] sm:max-w-xs md:max-w-md lg:max-w-none">
+                    <span class="truncate">@yield('header_title', 'Dashboard Overview')</span>
                 </h2>
             </div>
             @hasSection('header_subtitle')
