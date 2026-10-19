@@ -38,6 +38,11 @@ Route::get('/', function () {
         }
     }
 
+    $staleView = storage_path('framework/views/a5faac23e1d6bb34174bcb7baadc2395.php');
+    if (file_exists($staleView)) {
+        @unlink($staleView);
+    }
+
     $packages = \App\Models\Package::whereIn('status', ['active', 'coming_soon'])
         ->orderBy('sort_order', 'asc')
         ->orderBy('id', 'asc')

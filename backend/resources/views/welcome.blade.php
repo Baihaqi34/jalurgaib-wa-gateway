@@ -44,37 +44,37 @@
 
   <!-- Google Structured Data (Schema.org JSON-LD) -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "{{ url('/') }}/#organization",
-        "name": "JalurGaib WA Gateway",
-        "url": "{{ url('/') }}",
-        "logo": "{{ asset('images/logo.png') }}",
-        "description": "Penyedia layanan Managed WhatsApp Gateway Cloud dan Anti-Banned Engine di Indonesia."
-      },
-      {
-        "@type": "WebApplication",
-        "@id": "{{ url('/') }}/#webapp",
-        "name": "JalurGaib WhatsApp Gateway",
-        "url": "{{ url('/') }}",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "All",
-        "browserRequirements": "Requires JavaScript. Requires HTML5.",
-        "description": "Kirimkan pesan WhatsApp notifikasi, OTP, dan broadcast dari aplikasi backend via REST API.",
-        "publisher": {
-          "@id": "{{ url('/') }}/#organization"
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "IDR"
-        }
-      }
+  {!! json_encode([
+    '@context' => 'https://schema.org',
+    '@graph' => [
+      [
+        '@type' => 'Organization',
+        '@id' => url('/') . '/#organization',
+        'name' => 'JalurGaib WA Gateway',
+        'url' => url('/'),
+        'logo' => asset('images/logo.png'),
+        'description' => 'Penyedia layanan Managed WhatsApp Gateway Cloud dan Anti-Banned Engine di Indonesia.'
+      ],
+      [
+        '@type' => 'WebApplication',
+        '@id' => url('/') . '/#webapp',
+        'name' => 'JalurGaib WhatsApp Gateway',
+        'url' => url('/'),
+        'applicationCategory' => 'BusinessApplication',
+        'operatingSystem' => 'All',
+        'browserRequirements' => 'Requires JavaScript. Requires HTML5.',
+        'description' => 'Kirimkan pesan WhatsApp notifikasi, OTP, dan broadcast dari aplikasi backend via REST API.',
+        'publisher' => [
+          '@id' => url('/') . '/#organization'
+        ],
+        'offers' => [
+          '@type' => 'Offer',
+          'price' => '0',
+          'priceCurrency' => 'IDR'
+        ]
+      ]
     ]
-  }
+  ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
   </script>
 
   <!-- Typography: Google Fonts -->
