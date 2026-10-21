@@ -202,11 +202,12 @@ Route::get('sitemap.xml', function () {
 
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('login',          [AuthController::class, 'showLogin'])->name('login');
-    Route::post('login',         [AuthController::class, 'login'])->name('login.post');
-    Route::get('register',       [AuthController::class, 'showRegister'])->name('register');
-    Route::post('register',      [AuthController::class, 'register'])->name('register.post');
-    Route::post('auth/firebase', [AuthController::class, 'firebaseAuth'])->name('auth.firebase');
+    Route::get('login',                   [AuthController::class, 'showLogin'])->name('login');
+    Route::post('login',                  [AuthController::class, 'login'])->name('login.post');
+    Route::get('register',                [AuthController::class, 'showRegister'])->name('register');
+    Route::post('register',               [AuthController::class, 'register'])->name('register.post');
+    Route::post('auth/firebase',          [AuthController::class, 'firebaseAuth'])->name('auth.firebase');
+    Route::post('auth/firebase-register', [AuthController::class, 'firebaseRegister'])->name('auth.firebase.register');
 });
 
 // Kasera Payment Gateway Server-to-Server Webhook (CSRF Exempted in bootstrap/app.php)

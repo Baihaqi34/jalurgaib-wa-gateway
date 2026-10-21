@@ -6,14 +6,36 @@
     <title>Daftar Akun Baru — JalurGaib WA Gateway</title>
     <meta name="description" content="Daftar akun JalurGaib WA Gateway gratis sekarang. Nikmati akses REST API WhatsApp, multi-device session, webhook, dan anti-ban engine.">
     <link rel="canonical" href="{{ url('/register') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <!-- Adaptive Favicon Engine (Light logo for Dark Browser, Dark logo for Light Browser) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-white.png') }}" id="dynamic-favicon">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="theme-color" content="#09090b">
+    <script>
+        (function() {
+            const whiteFav = "{{ asset('images/logo-white.png') }}";
+            const blackFav = "{{ asset('images/logo-black.png') }}";
+            function syncFavicon() {
+                const isDarkBrowser = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const link = document.getElementById('dynamic-favicon');
+                if (link) {
+                    link.href = isDarkBrowser ? whiteFav : blackFav;
+                }
+            }
+            syncFavicon();
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncFavicon);
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -68,7 +90,19 @@
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
         }
 
+        .logo-box {
+            width: 4rem;
+            height: 4rem;
+            max-width: 4rem;
+            max-height: 4rem;
+            flex-shrink: 0;
+        }
+
         .jalurgaib-logo {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
             filter: brightness(0) invert(1);
         }
@@ -125,9 +159,9 @@
     <div class="w-full max-w-md relative z-10 my-8">
         <!-- Logo & Header -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-mono-900 border border-mono-700 p-2 shadow-xl shadow-black/40 mb-3 ring-1 ring-mono-700">
+            <a href="{{ route('landing') }}" class="inline-flex items-center justify-center logo-box w-16 h-16 rounded-3xl bg-mono-900 border border-mono-700 p-2 shadow-xl shadow-black/40 mb-3 ring-1 ring-mono-700 hover:border-mono-500 hover:scale-105 transition-all duration-200" title="Kembali ke Beranda">
                 <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo w-full h-full object-contain">
-            </div>
+            </a>
             @if(isset($selectedPackage) && !$selectedPackage->isFree())
                 <h1 class="text-3xl font-extrabold tracking-tight text-mono-50">Daftar & Berlangganan</h1>
                 <p class="text-mono-400 text-xs mt-1.5 font-medium">Lengkapi pendaftaran akun untuk mengaktifkan paket {{ $selectedPackage->name }}</p>
@@ -175,7 +209,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('register.post') }}" method="POST" onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+            <form id="register-form" action="{{ route('register.post') }}" method="POST" onsubmit="handleRegisterSubmit(event)" class="space-y-4">
                 @csrf
 
                 @if(isset($selectedPackage))
@@ -196,14 +230,24 @@
 
                 <div>
                     <label class="block text-xs font-bold text-mono-300 mb-1.5">Kata Sandi</label>
-                    <input type="password" id="password" name="password" required placeholder="Minimal 8 karakter"
-                           class="w-full mono-input px-4 py-2.5 text-sm placeholder-mono-500 font-medium">
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required placeholder="Minimal 8 karakter"
+                               class="w-full mono-input px-4 py-2.5 pr-10 text-sm placeholder-mono-500 font-medium">
+                        <button type="button" onclick="togglePasswordVisibility('password', 'toggle-password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-mono-500 hover:text-mono-200 transition-colors cursor-pointer" tabindex="-1" title="Lihat/Sembunyikan sandi">
+                            <i id="toggle-password-icon" class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-mono-300 mb-1.5">Konfirmasi Kata Sandi</label>
-                    <input type="password" id="password_confirmation" name="password_confirmation" required placeholder="Ulangi kata sandi"
-                           class="w-full mono-input px-4 py-2.5 text-sm placeholder-mono-500 font-medium">
+                    <div class="relative">
+                        <input type="password" id="password_confirmation" name="password_confirmation" required placeholder="Ulangi kata sandi"
+                               class="w-full mono-input px-4 py-2.5 pr-10 text-sm placeholder-mono-500 font-medium">
+                        <button type="button" onclick="togglePasswordVisibility('password_confirmation', 'toggle-password-confirmation-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-mono-500 hover:text-mono-200 transition-colors cursor-pointer" tabindex="-1" title="Lihat/Sembunyikan sandi">
+                            <i id="toggle-password-confirmation-icon" class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="pt-2">
@@ -256,16 +300,175 @@
     </div>
 
     <script>
-        function handleRegisterSubmit(e) {
-            const isPaid = {{ (isset($selectedPackage) && !$selectedPackage->isFree()) ? 'true' : 'false' }};
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        async function handleRegisterSubmit(e) {
+            // If Firebase config is missing, fallback to native Laravel POST
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.trim() === '') {
+                const isPaid = {{ (isset($selectedPackage) && !$selectedPackage->isFree()) ? 'true' : 'false' }};
+                Swal.fire({
+                    title: isPaid ? 'Membuat Akun & Checkout...' : 'Membuat Akun...',
+                    text: isPaid ? 'Sedang mendaftarkan akun dan mengarahkan ke gateway pembayaran...' : 'Sedang memproses registrasi & generate API Key...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    customClass: { popup: 'swal2-dark-custom' },
+                    didOpen: () => Swal.showLoading()
+                });
+                return true;
+            }
+
+            e.preventDefault();
+
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const passwordConfirmInput = document.getElementById('password_confirmation');
+            const packageId = document.querySelector('input[name="package_id"]')?.value || null;
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+            const passwordConfirmation = passwordConfirmInput ? passwordConfirmInput.value : '';
+
+            if (!name || !email || !password) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Form Belum Lengkap',
+                    text: 'Silakan isi seluruh bidang formulir pendaftaran.',
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+                return;
+            }
+
+            if (password.length < 8) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kata Sandi Terlalu Pendek',
+                    text: 'Kata sandi minimal harus terdiri dari 8 karakter.',
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+                return;
+            }
+
+            if (password !== passwordConfirmation) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kata Sandi Tidak Cocok',
+                    text: 'Konfirmasi kata sandi tidak sama dengan kata sandi Anda.',
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+                return;
+            }
+
             Swal.fire({
-                title: isPaid ? 'Membuat Akun & Checkout...' : 'Membuat Akun...',
-                text: isPaid ? 'Sedang mendaftarkan akun dan mengarahkan ke gateway pembayaran...' : 'Sedang memproses registrasi & generate API Key...',
+                title: 'Mendaftarkan Akun...',
+                text: 'Sedang membuat akun & menyiapkan link verifikasi email resmi via Google...',
                 allowOutsideClick: false,
                 showConfirmButton: false,
                 customClass: { popup: 'swal2-dark-custom' },
                 didOpen: () => Swal.showLoading()
             });
+
+            try {
+                // 1. Create User in Firebase Authentication (Native Email/Password Provider)
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+
+                // 2. Set Display Name in Firebase
+                try {
+                    await userCredential.user.updateProfile({ displayName: name });
+                } catch (err) {
+                    console.warn("Could not set display name in Firebase:", err);
+                }
+
+                // 3. Google Firebase sends official verification email
+                await userCredential.user.sendEmailVerification();
+
+                // 4. Get ID Token
+                const idToken = await userCredential.user.getIdToken();
+
+                // 5. Store user in database with pending verification
+                const response = await fetch("{{ route('auth.firebase.register') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        id_token: idToken,
+                        name: name,
+                        password: password,
+                        package_id: packageId
+                    })
+                });
+
+                const data = await response.json();
+
+                // 6. Sign out temporary Firebase session until user confirms email
+                await firebase.auth().signOut();
+
+                if (response.ok && data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Pendaftaran Berhasil!',
+                        html: `
+                            <div class="text-left text-xs leading-relaxed space-y-3 text-mono-300">
+                                <p>Akun Anda berhasil didaftarkan. Google Firebase telah mengirimkan <b>link verifikasi resmi</b> ke alamat:</p>
+                                <div class="p-2.5 bg-mono-950 border border-mono-700 rounded-xl font-mono text-center text-mono-50 font-bold text-xs tracking-wide">${email}</div>
+                                <div class="p-2.5 bg-mono-850 border border-mono-700/80 rounded-xl text-amber-300 text-[11px] flex items-start gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 flex-shrink-0"></i>
+                                    <span>Wajib buka <b>Inbox</b> atau folder <b>Spam</b> email Anda dan klik link verifikasi tersebut agar akun dapat digunakan untuk masuk.</span>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'Buka Halaman Masuk',
+                        allowOutsideClick: false,
+                        customClass: {
+                            popup: 'swal2-dark-custom',
+                            confirmButton: 'mono-btn-primary px-5 py-2.5 text-xs font-bold'
+                        }
+                    }).then(() => {
+                        window.location.href = "{{ route('login') }}?email=" + encodeURIComponent(email) + "&registered=1";
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Pendaftaran Gagal',
+                        text: data.message || 'Terjadi kesalahan saat menyimpan data akun.',
+                        customClass: { popup: 'swal2-dark-custom' }
+                    });
+                }
+            } catch (error) {
+                console.error("Firebase Registration Error:", error);
+                let errorMsg = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMsg = 'Alamat email ini sudah terdaftar di sistem. Silakan masuk ke akun Anda atau gunakan email lain.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMsg = 'Kata sandi terlalu lemah. Harap gunakan minimal 8 karakter.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = 'Format alamat email tidak valid.';
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pendaftaran Gagal',
+                    text: errorMsg,
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+            }
         }
 
         // Firebase Web SDK Configuration

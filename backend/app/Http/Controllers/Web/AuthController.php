@@ -124,24 +124,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Authenticate or register a user using Firebase ID token (Google Sign-In).
+     * Helper to verify and parse Firebase ID Token via Google Identity Toolkit or JWT fallback.
      */
-    public function firebaseAuth(
-        Request $request,
-        \App\Services\SubscriptionPaymentService $paymentService
-    ): JsonResponse {
-        $validated = $request->validate([
-            'id_token'   => 'required|string',
-            'package_id' => 'nullable|exists:packages,id',
-        ]);
-
-        $idToken = $validated['id_token'];
+    private function verifyFirebaseIdToken(string $idToken): ?array
+    {
         $firebaseConfig = config('services.firebase');
         $apiKey = $firebaseConfig['api_key'] ?? '';
-
         $firebaseUser = null;
 
-        // 1. If Firebase Web API key is set, verify via Google Identity Toolkit
+        // 1. Verify via Google Identity Toolkit if API Key exists
         if (!empty($apiKey)) {
             try {
                 $response = Http::timeout(10)->post(
@@ -182,17 +173,105 @@ class AuthController extends Controller
                         'email'          => $claims['email'],
                         'displayName'    => $claims['name'] ?? null,
                         'photoUrl'       => $claims['picture'] ?? null,
-                        'email_verified' => (bool) ($claims['email_verified'] ?? true),
+                        'email_verified' => (bool) ($claims['email_verified'] ?? false),
                     ];
                 }
             }
         }
 
+        return $firebaseUser;
+    }
+
+    /**
+     * Register a new user using Firebase credentials (pending email verification).
+     */
+    public function firebaseRegister(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'id_token'   => 'required|string',
+            'package_id' => 'nullable|exists:packages,id',
+            'name'       => 'nullable|string|max:255',
+            'password'   => 'nullable|string|min:6',
+        ]);
+
+        $firebaseUser = $this->verifyFirebaseIdToken($validated['id_token']);
         if (!$firebaseUser || empty($firebaseUser['email'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Token autentikasi Google tidak valid atau telah kedaluwarsa.',
+                'message' => 'Token pendaftaran Firebase tidak valid atau telah kedaluwarsa.',
             ], 422);
+        }
+
+        $email = strtolower(trim($firebaseUser['email']));
+        $uid = $firebaseUser['uid'] ?? null;
+        $displayName = $validated['name'] ?? $firebaseUser['displayName'] ?? explode('@', $email)[0];
+
+        $hasFirebaseCol = \Illuminate\Support\Facades\Schema::hasColumn('users', 'firebase_uid');
+
+        $user = User::where('email', $email)->first();
+        if ($user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alamat email ini sudah terdaftar. Silakan masuk ke akun Anda.',
+            ], 422);
+        }
+
+        $freePackage = Package::getDefaultPackage();
+        $userData = [
+            'name'              => $displayName,
+            'email'             => $email,
+            'email_verified_at' => $firebaseUser['email_verified'] ? now() : null,
+            'password'          => Hash::make($validated['password'] ?? Str::random(32)),
+            'role'              => 'user',
+            'package_id'        => $validated['package_id'] ?? $freePackage->id,
+        ];
+        if ($hasFirebaseCol && $uid) {
+            $userData['firebase_uid'] = $uid;
+        }
+
+        $newUser = User::create($userData);
+
+        // Auto-generate starter API Key
+        $newUser->apiKeys()->create([
+            'name'      => 'Default API Key',
+            'key'       => \App\Models\ApiKey::generateKey(),
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Pendaftaran berhasil! Link verifikasi resmi dari Google telah dikirimkan ke email Anda.',
+            'email_verified' => (bool) $firebaseUser['email_verified'],
+        ]);
+    }
+
+    /**
+     * Authenticate a user using Firebase ID token (Google Sign-In or Email/Password).
+     */
+    public function firebaseAuth(
+        Request $request,
+        \App\Services\SubscriptionPaymentService $paymentService
+    ): JsonResponse {
+        $validated = $request->validate([
+            'id_token'   => 'required|string',
+            'package_id' => 'nullable|exists:packages,id',
+        ]);
+
+        $firebaseUser = $this->verifyFirebaseIdToken($validated['id_token']);
+        if (!$firebaseUser || empty($firebaseUser['email'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token autentikasi Firebase tidak valid atau telah kedaluwarsa.',
+            ], 422);
+        }
+
+        // Strict Check: Ensure user email is verified before allowing portal access
+        if (empty($firebaseUser['email_verified'])) {
+            return response()->json([
+                'success'        => false,
+                'email_verified' => false,
+                'message'        => 'Email Anda belum diverifikasi. Silakan klik link verifikasi yang dikirimkan ke email Anda sebelum masuk.',
+            ], 403);
         }
 
         $email = strtolower(trim($firebaseUser['email']));
@@ -200,7 +279,7 @@ class AuthController extends Controller
         $displayName = $firebaseUser['displayName'] ?: explode('@', $email)[0];
         $photoUrl = $firebaseUser['photoUrl'] ?? null;
 
-        // 3. Find existing user or register new user
+        // Find existing user or register new user
         $hasFirebaseCol = \Illuminate\Support\Facades\Schema::hasColumn('users', 'firebase_uid');
         $hasAvatarCol = \Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar');
 
@@ -240,6 +319,9 @@ class AuthController extends Controller
             }
             if ($photoUrl && $hasAvatarCol && empty($user->avatar)) {
                 $updates['avatar'] = $photoUrl;
+            }
+            if ($firebaseUser['email_verified'] && empty($user->email_verified_at)) {
+                $updates['email_verified_at'] = now();
             }
             if (!empty($updates)) {
                 $user->update($updates);

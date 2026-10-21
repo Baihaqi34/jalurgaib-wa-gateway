@@ -6,14 +6,38 @@
     <title>Masuk — JalurGaib WA Gateway</title>
     <meta name="description" content="Masuk ke portal JalurGaib WA Gateway untuk mengelola perangkat WhatsApp, mengirim pesan otomatis, dan memantau integrasi REST API.">
     <link rel="canonical" href="{{ url('/login') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <!-- Adaptive Favicon Engine (Light logo for Dark Browser, Dark logo for Light Browser) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-white.png') }}" id="dynamic-favicon">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="theme-color" content="#09090b">
+    <script>
+        (function() {
+            const whiteFav = "{{ asset('images/logo-white.png') }}";
+            const blackFav = "{{ asset('images/logo-black.png') }}";
+            function syncFavicon() {
+                const isDarkBrowser = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const link = document.getElementById('dynamic-favicon');
+                if (link) {
+                    link.href = isDarkBrowser ? whiteFav : blackFav;
+                }
+            }
+            syncFavicon();
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncFavicon);
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -66,7 +90,19 @@
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
         }
 
+        .logo-box {
+            width: 4rem;
+            height: 4rem;
+            max-width: 4rem;
+            max-height: 4rem;
+            flex-shrink: 0;
+        }
+
         .jalurgaib-logo {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
             filter: brightness(0) invert(1);
         }
@@ -123,9 +159,9 @@
     <div class="w-full max-w-md relative z-10">
         <!-- Logo & Header -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-mono-900 border border-mono-700 p-2 shadow-xl shadow-black/40 mb-4 ring-1 ring-mono-700">
+            <a href="{{ route('landing') }}" class="inline-flex items-center justify-center logo-box w-16 h-16 rounded-3xl bg-mono-900 border border-mono-700 p-2 shadow-xl shadow-black/40 mb-4 ring-1 ring-mono-700 hover:border-mono-500 hover:scale-105 transition-all duration-200" title="Kembali ke Beranda">
                 <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo w-full h-full object-contain">
-            </div>
+            </a>
             <h1 class="text-3xl font-extrabold tracking-tight text-mono-50">JalurGaib WA Gateway</h1>
             <p class="text-mono-400 text-xs mt-1.5 font-medium">Masuk ke portal pengelolaan gateway WhatsApp Anda</p>
         </div>
@@ -154,7 +190,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('login.post') }}" method="POST" onsubmit="Swal.fire({title: 'Memverifikasi...', text: 'Sedang memeriksa kredensial akun...', allowOutsideClick: false, showConfirmButton: false, customClass: {popup: 'swal2-dark-custom'}, didOpen: () => Swal.showLoading()})" class="space-y-4">
+            <form id="login-form" action="{{ route('login.post') }}" method="POST" onsubmit="handleLoginSubmit(event)" class="space-y-4">
                 @csrf
 
                 <div>
@@ -167,8 +203,13 @@
                     <div class="flex justify-between items-center mb-1.5">
                         <label class="block text-xs font-bold text-mono-300">Kata Sandi</label>
                     </div>
-                    <input type="password" id="password" name="password" required placeholder="••••••••"
-                           class="w-full mono-input px-4 py-2.5 text-sm placeholder-mono-500 font-medium">
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required placeholder="••••••••"
+                               class="w-full mono-input px-4 py-2.5 pr-10 text-sm placeholder-mono-500 font-medium">
+                        <button type="button" onclick="togglePasswordVisibility('password', 'toggle-password-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-mono-500 hover:text-mono-200 transition-colors cursor-pointer" tabindex="-1" title="Lihat/Sembunyikan sandi">
+                            <i id="toggle-password-icon" class="fa-regular fa-eye text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between text-xs pt-1">
@@ -218,6 +259,21 @@
     </div>
 
     <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         // Firebase Web SDK Configuration
         const firebaseConfig = {
             apiKey: "{{ config('services.firebase.api_key') }}",
@@ -238,6 +294,209 @@
                 }
             } catch (e) {
                 console.error("Firebase Init Error:", e);
+            }
+        }
+
+        // Check URL parameters for registered flash notice or prefilled email
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const emailParam = params.get('email');
+            if (emailParam) {
+                const emailInput = document.getElementById('email');
+                if (emailInput) {
+                    emailInput.value = emailParam;
+                }
+            }
+            if (params.get('registered') === '1') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Verifikasi Email Dikirim!',
+                    html: `
+                        <div class="text-left text-xs text-mono-300 space-y-2 leading-relaxed">
+                            <p>Akun Anda telah terdaftar. Kami telah mengirimkan <b>link verifikasi resmi</b> ke inbox/spam email Anda.</p>
+                            <p class="text-amber-400 font-semibold">Silakan klik link verifikasi tersebut sebelum melakukan login.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'swal2-dark-custom',
+                        confirmButton: 'mono-btn-primary px-5 py-2 text-xs font-bold'
+                    }
+                });
+            }
+        });
+
+        async function handleLoginSubmit(e) {
+            // If Firebase is not configured, fallback to native Laravel POST
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.trim() === '') {
+                Swal.fire({
+                    title: 'Memverifikasi...',
+                    text: 'Sedang memeriksa kredensial akun...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    customClass: { popup: 'swal2-dark-custom' },
+                    didOpen: () => Swal.showLoading()
+                });
+                return true;
+            }
+
+            e.preventDefault();
+
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const email = emailInput ? emailInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+
+            if (!email || !password) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Form Belum Lengkap',
+                    text: 'Silakan masukkan email dan kata sandi Anda.',
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Memverifikasi...',
+                text: 'Sedang memeriksa status akun & verifikasi email...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                customClass: { popup: 'swal2-dark-custom' },
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                // 1. Authenticate with Firebase Email/Password
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+                // Reload user to ensure we have the freshest emailVerified state from Google
+                await userCredential.user.reload();
+                const isVerified = userCredential.user.emailVerified;
+
+                if (!isVerified) {
+                    await firebase.auth().signOut();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Email Belum Diverifikasi',
+                        html: `
+                            <div class="text-left text-xs leading-relaxed space-y-3 text-mono-300">
+                                <p>Alamat email <b>${email}</b> belum diverifikasi.</p>
+                                <p>Silakan buka inbox atau folder spam email Anda dan klik link konfirmasi resmi yang telah kami kirimkan.</p>
+                                <p class="text-mono-400 text-[11px]">Belum menerima link verifikasi dari Google?</p>
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Kirim Ulang Link',
+                        cancelButtonText: 'Tutup',
+                        customClass: {
+                            popup: 'swal2-dark-custom',
+                            confirmButton: 'mono-btn-primary px-4 py-2 text-xs font-bold',
+                            cancelButton: 'bg-mono-800 text-mono-300 px-4 py-2 text-xs rounded-xl hover:bg-mono-700'
+                        }
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            await resendVerificationEmail(email, password);
+                        }
+                    });
+                    return;
+                }
+
+                // 2. Email is verified! Get ID Token and authenticate with Laravel session
+                const idToken = await userCredential.user.getIdToken(true);
+
+                const response = await fetch("{{ route('auth.firebase') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ id_token: idToken })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Masuk!',
+                        text: 'Mengarahkan ke Dashboard...',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        customClass: { popup: 'swal2-dark-custom' }
+                    }).then(() => {
+                        window.location.href = data.redirect;
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Masuk',
+                        text: data.message || 'Terjadi kesalahan saat memproses sesi login.',
+                        customClass: { popup: 'swal2-dark-custom' }
+                    });
+                }
+
+            } catch (error) {
+                console.warn("Firebase sign-in result:", error);
+
+                // If user doesn't exist in Firebase (e.g. admin@jalurgaib.com seeded in Laravel),
+                // fallback to native Laravel authentication!
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    document.getElementById('login-form').submit();
+                    return;
+                }
+
+                let errorMsg = error.message;
+                if (error.code === 'auth/wrong-password') {
+                    errorMsg = 'Kata sandi yang Anda masukkan salah.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg = 'Terlalu banyak percobaan gagal. Silakan tunggu beberapa saat lagi.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = 'Format alamat email tidak valid.';
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk',
+                    text: errorMsg,
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
+            }
+        }
+
+        async function resendVerificationEmail(email, password) {
+            Swal.fire({
+                title: 'Mengirim Ulang...',
+                text: 'Sedang mengirimkan link verifikasi baru ke email Anda...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                customClass: { popup: 'swal2-dark-custom' },
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+                await cred.user.sendEmailVerification();
+                await firebase.auth().signOut();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link Terkirim!',
+                    text: 'Link verifikasi baru telah dikirimkan ke ' + email + '. Silakan cek inbox atau folder spam Anda.',
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'swal2-dark-custom',
+                        confirmButton: 'mono-btn-primary px-5 py-2 text-xs font-bold'
+                    }
+                });
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengirim Ulang',
+                    text: err.message || 'Terjadi kesalahan saat mengirim ulang email verifikasi.',
+                    customClass: { popup: 'swal2-dark-custom' }
+                });
             }
         }
 

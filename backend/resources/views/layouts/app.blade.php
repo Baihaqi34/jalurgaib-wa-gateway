@@ -7,13 +7,31 @@
     <meta name="api-key" content="{{ auth()->check() ? auth()->user()->getOrCreateApiKey() : '' }}">
     <title>@yield('title', 'JalurGaib WA Gateway')</title>
 
-    <!-- Favicon & Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <!-- Adaptive Favicon Engine (Light logo for Dark Browser, Dark logo for Light Browser) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-white.png') }}" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/logo-black.png') }}" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-white.png') }}" id="dynamic-favicon">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="theme-color" content="#09090b">
+    <script>
+        (function() {
+            const whiteFav = "{{ asset('images/logo-white.png') }}";
+            const blackFav = "{{ asset('images/logo-black.png') }}";
+            function syncFavicon() {
+                const isDarkBrowser = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const link = document.getElementById('dynamic-favicon');
+                if (link) {
+                    link.href = isDarkBrowser ? whiteFav : blackFav;
+                }
+            }
+            syncFavicon();
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncFavicon);
+            }
+        })();
+    </script>
 
     <!-- SEO Meta Engine -->
     @hasSection('meta')
@@ -642,15 +660,17 @@
             color: #94a3b8 !important;
         }
     </style>
-    <!-- Theme Switcher Logic -->
+    <!-- Theme Switcher & Adaptive Favicon Logic -->
     <script>
-        if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+        const isLightPreferred = localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches);
+        if (isLightPreferred) {
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
         } else {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
         }
+
         window.toggleTheme = function() {
             const isDark = document.documentElement.classList.contains('dark');
             if (isDark) {
