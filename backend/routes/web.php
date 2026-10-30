@@ -200,6 +200,14 @@ Route::post('kasera-pay/webhook', KaseraPayWebhookController::class)->name('kase
 // Standalone Developer REST API Documentation (Terbuka di Halaman Baru Mandiri)
 Route::get('docs', function () { return view('docs'); })->name('docs');
 
+// Legal Pages for Google Firebase OAuth Branding & Verification
+Route::get('privacy-policy', function () { return view('legal.privacy'); })->name('privacy');
+Route::get('privacy', function () { return redirect()->route('privacy'); });
+
+Route::get('terms-and-conditions', function () { return view('legal.terms'); })->name('terms');
+Route::get('terms', function () { return redirect()->route('terms'); });
+Route::get('tos', function () { return redirect()->route('terms'); });
+
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');

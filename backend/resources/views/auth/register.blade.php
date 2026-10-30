@@ -288,7 +288,11 @@
                 <span>Daftar dengan Google</span>
             </button>
 
-            <div class="mt-6 pt-5 border-t border-mono-700/80 text-center text-xs text-mono-400">
+            <p class="text-[11px] text-mono-400 text-center mt-3 leading-relaxed">
+                Dengan mendaftar, Anda menyetujui <a href="{{ route('terms') }}" target="_blank" class="text-mono-200 font-semibold underline hover:text-white">Syarat & Ketentuan</a> serta <a href="{{ route('privacy') }}" target="_blank" class="text-mono-200 font-semibold underline hover:text-white">Kebijakan Privasi</a> JalurGaib.
+            </p>
+
+            <div class="mt-5 pt-4 border-t border-mono-700/80 text-center text-xs text-mono-400">
                 Sudah memiliki akun? 
                 <a href="{{ route('login') }}" class="text-mono-50 font-bold hover:underline">Masuk ke Portal</a>
             </div>

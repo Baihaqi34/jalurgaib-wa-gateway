@@ -2584,7 +2584,7 @@ if ($response->successful()) {
         </div>
 
         <div>
-          <h4 class="footer-col-title">Akses</h4>
+          <h4 class="footer-col-title">Akses & Legal</h4>
           <ul class="footer-links">
             @auth
               <li><a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}">Dashboard Saya</a></li>
@@ -2593,6 +2593,8 @@ if ($response->successful()) {
               <li><a href="{{ route('register') }}">Daftar Gratis</a></li>
             @endauth
             <li><a href="{{ route('docs') }}">Dokumentasi API</a></li>
+            <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+            <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
           </ul>
         </div>
 
@@ -2606,7 +2608,11 @@ if ($response->successful()) {
 
       <div class="footer-bottom">
         <div>© 2026 JalurGaib — Managed WhatsApp Cloud Service.</div>
-        <div>Monochromatic Bento Design System</div>
+        <div style="display: flex; align-items: center; gap: 14px; font-size: 0.8rem;">
+          <a href="{{ route('privacy') }}" style="color: var(--text-secondary); text-decoration: none;">Kebijakan Privasi</a>
+          <span>·</span>
+          <a href="{{ route('terms') }}" style="color: var(--text-secondary); text-decoration: none;">Syarat & Ketentuan</a>
+        </div>
       </div>
     </div>
   </footer>
