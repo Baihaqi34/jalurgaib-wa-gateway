@@ -30,10 +30,7 @@
     <div class="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
         
         <!-- Go Engine Status Widget -->
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-mono-850 border border-mono-700/80 text-xs shadow-sm" title="WhatsApp Engine Gateway Service">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
-            <span class="text-mono-300 font-mono text-[11px] font-semibold tracking-wide">Engine 8080</span>
-        </div>
+      
 
         <!-- Dark / Light Mode Toggle Button -->
         <button type="button" 
@@ -99,11 +96,18 @@
                         <i class="fa-solid fa-crown text-amber-400 w-4 text-center"></i>
                         <span>Upgrade Paket Langganan</span>
                     </a>
+                    <a href="{{ route('user.orders') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-mono-200 hover:text-white hover:bg-mono-800/80 transition">
+                        <i class="fa-solid fa-receipt text-mono-400 w-4 text-center"></i>
+                        <span>Riwayat Pembayaran</span>
+                    </a>
                 @endif
 
-                <a href="{{ route('docs') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-mono-200 hover:text-white hover:bg-mono-800/80 transition">
-                    <i class="fa-solid fa-book-bookmark text-mono-400 w-4 text-center"></i>
-                    <span>Dokumentasi REST API</span>
+                <a href="{{ route('docs') }}" target="_blank" class="flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-mono-200 hover:text-white hover:bg-mono-800/80 transition">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-book-bookmark text-mono-400 w-4 text-center"></i>
+                        <span>Dokumentasi REST API</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-mono-400"></i>
                 </a>
 
                 <div class="border-t border-mono-800 my-1"></div>

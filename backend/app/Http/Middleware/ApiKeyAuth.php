@@ -13,9 +13,11 @@ class ApiKeyAuth
     {
         $user = null;
 
-        // 1. Check if external client provided X-API-Key or api_key query param
-        $key = $request->header('X-API-Key')
-            ?? $request->query('api_key');
+        // 1. Check if external client provided X-API-Key header or Bearer token
+        $key = $request->header('X-API-Key');
+        if (!$key && $request->bearerToken()) {
+            $key = $request->bearerToken();
+        }
 
         if ($key) {
             $apiKey = ApiKey::where('key', $key)->with('user')->first();

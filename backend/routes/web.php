@@ -9,12 +9,14 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\User\UserDashboardController;
 use App\Http\Controllers\User\UserProfileController;
+use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Payment\KaseraPayWebhookController;
 use App\Http\Controllers\Payment\PaymentCheckoutController;
 use App\Http\Controllers\Payment\PaymentStatusController;
 
 use App\Http\Controllers\Admin\AdminTestimonialController;
+use App\Http\Controllers\Admin\AdminUserLogController;
 use App\Models\Testimonial;
 
 /*
@@ -25,9 +27,6 @@ use App\Models\Testimonial;
 
 // Root Landing Page (Monochromatic JalurGaib)
 Route::get('/', function () {
-    if (!file_exists(public_path('images/logo.png')) && file_exists(public_path('process_logo.php'))) {
-        @include_once public_path('process_logo.php');
-    }
 
     $favPath = public_path('favicon.ico');
     if (!file_exists($favPath) || filesize($favPath) < 100) {
@@ -100,19 +99,30 @@ Route::get('/', function () {
     return view('welcome', compact('packages', 'testimonials'));
 })->name('landing');
 
-// Fallback direct logo route
+// Fallback direct logo route with strict path traversal prevention
 Route::get('images/{filename}', function ($filename) {
-    $filePath = public_path('images/' . $filename);
-    if (!file_exists($filePath) && file_exists(public_path('process_logo.php'))) {
-        @include_once public_path('process_logo.php');
+    $cleanName = basename($filename);
+    
+    // Strict validation: Reject directory separators or invalid image names
+    if ($cleanName !== $filename || !preg_match('/^[a-zA-Z0-9_\-\.]+\.(png|jpg|jpeg|svg|ico|webp)$/i', $cleanName)) {
+        return abort(404);
     }
 
+    $filePath = public_path('images/' . $cleanName);
     if (file_exists($filePath)) {
-        return response()->file($filePath, ['Content-Type' => 'image/png']);
+        $mime = match (strtolower(pathinfo($filePath, PATHINFO_EXTENSION))) {
+            'png'   => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'svg'   => 'image/svg+xml',
+            'ico'   => 'image/x-icon',
+            'webp'  => 'image/webp',
+            default => 'application/octet-stream',
+        };
+        return response()->file($filePath, ['Content-Type' => $mime]);
     }
 
     return abort(404);
-})->where('filename', '.*');
+})->where('filename', '[a-zA-Z0-9_\-\.]+');
 
 // Favicon & SEO Assets direct handler
 Route::get('favicon.ico', function () {
@@ -173,35 +183,9 @@ Route::get('sitemap.xml', function () {
     }
     return abort(404);
 });
-// Route::get('/coba', function () {
 
-//     $response = Http::withHeaders([
-//         'X-API-Key' => 'wag_QaGY4a1cfUtANvovwAUFM3KG5bDPhP5Kc6M2sbK86q0m6n9D',
-//         'Accept'    => 'application/json',
-//     ])->post('http://localhost:8000/api/messages/send', [
-//         'device_id' => 'dev_trArD5x6fg1G',
-//         'to'        => '6283141847231',
-//         'message'   => 'Halo! Pesanan #1042 Anda sedang dikirim via kurir 🚚',
-//         'delay'     => 8,
-//     ]);
-
-//     if ($response->successful()) {
-//         return response()->json([
-//             'success' => true,
-//             'data' => $response->json(),
-//         ]);
-//     }
-
-//     return response()->json([
-//         'success' => false,
-//         'status' => $response->status(),
-//         'error' => $response->json(),
-//     ], $response->status());
-
-// })->name('coba');
-
-// Guest Authentication Routes
-Route::middleware('guest')->group(function () {
+// Guest Authentication Routes (with Rate Limiting against brute-force)
+Route::middleware(['guest', 'throttle:10,1'])->group(function () {
     Route::get('login',                   [AuthController::class, 'showLogin'])->name('login');
     Route::post('login',                  [AuthController::class, 'login'])->name('login.post');
     Route::get('register',                [AuthController::class, 'showRegister'])->name('register');
@@ -212,6 +196,9 @@ Route::middleware('guest')->group(function () {
 
 // Kasera Payment Gateway Server-to-Server Webhook (CSRF Exempted in bootstrap/app.php)
 Route::post('kasera-pay/webhook', KaseraPayWebhookController::class)->name('kasera.webhook');
+
+// Standalone Developer REST API Documentation (Terbuka di Halaman Baru Mandiri)
+Route::get('docs', function () { return view('docs'); })->name('docs');
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
@@ -224,6 +211,7 @@ Route::middleware('auth')->group(function () {
     Route::get('history',   [UserDashboardController::class, 'history'])->name('user.history');
     Route::get('api-keys',  [UserDashboardController::class, 'apiKeys'])->name('user.api-keys');
     Route::get('upgrade',   [UserDashboardController::class, 'upgrade'])->name('user.upgrade');
+    Route::get('orders',    [UserOrderController::class, 'index'])->name('user.orders');
     Route::get('profile',   [UserProfileController::class, 'edit'])->name('user.profile');
     Route::put('profile',   [UserProfileController::class, 'updateProfile'])->name('user.profile.update');
     Route::put('profile/password', [UserProfileController::class, 'updatePassword'])->name('user.profile.password');
@@ -231,12 +219,11 @@ Route::middleware('auth')->group(function () {
     Route::post('checkout/cancel/{order_no}', [PaymentCheckoutController::class, 'cancel'])->name('user.checkout.cancel');
     Route::get('payment/finish', [PaymentStatusController::class, 'finish'])->name('user.payment.finish');
     Route::get('user/api/stats', [UserDashboardController::class, 'getStats'])->name('user.stats');
-    Route::get('docs', function () { return view('docs'); })->name('docs');
 
     // ─── ADMIN / APLIKATOR DASHBOARD (Super Admin) ───────────────────────────
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('docs', function () { return view('docs'); })->name('docs');
+        Route::get('docs', function () { return redirect()->route('docs'); })->name('docs');
         
         // Resource CRUD for User Management
         Route::resource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -252,6 +239,10 @@ Route::middleware('auth')->group(function () {
         // Testimonials Management (Landing Page Reviews)
         Route::resource('testimonials', AdminTestimonialController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::post('testimonials/{testimonial}/toggle', [AdminTestimonialController::class, 'toggle'])->name('testimonials.toggle');
+
+        // User Activity Logs (Login, Logout, Pembayaran, Checkout)
+        Route::get('logs', [AdminUserLogController::class, 'index'])->name('logs.index');
+        Route::post('logs/clear-old', [AdminUserLogController::class, 'clearOld'])->name('logs.clear-old');
 
         // Admin Internal Management APIs
         Route::get('api/stats',    [AdminDashboardController::class, 'getGlobalStats'])->name('stats');

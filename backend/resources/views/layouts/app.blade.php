@@ -710,6 +710,7 @@
 
         <!-- MAIN PAGE CONTENT -->
         <main class="flex-1 w-full px-4 py-5 sm:px-6 sm:py-6">
+            @include('layouts.pending-order-alert')
             @yield('content')
         </main>
 
@@ -835,19 +836,19 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             @if(session('success'))
-                AppSwal.toastSuccess("{{ session('success') }}");
+                AppSwal.toastSuccess(@js(session('success')));
             @endif
 
             @if(session('error'))
-                AppSwal.error("Gagal", "{{ session('error') }}");
+                AppSwal.error("Gagal", @js(session('error')));
             @endif
 
             @if(session('warning'))
-                AppSwal.warning("Peringatan", "{{ session('warning') }}");
+                AppSwal.warning("Peringatan", @js(session('warning')));
             @endif
 
             @if($errors->any())
-                AppSwal.error("Kesalahan Input", "{!! implode('<br>', $errors->all()) !!}");
+                AppSwal.error("Kesalahan Input", @js(implode("\n", $errors->all())));
             @endif
         });
     </script>

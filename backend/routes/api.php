@@ -46,7 +46,9 @@ Route::middleware('api_key')->group(function () {
 
     // Messaging
     Route::post('messages/send',      [MessageController::class, 'sendText']);
+    Route::post('message/send',       [MessageController::class, 'sendText']); // Route alias (singular)
     Route::post('messages/send-bulk', [MessageController::class, 'sendBulk']);
+    Route::post('message/send-bulk',  [MessageController::class, 'sendBulk']); // Route alias (singular)
     Route::get('messages',            [MessageController::class, 'index']);
 });
 

@@ -417,10 +417,25 @@
 
                 const data = await response.json();
 
-                // 6. Sign out temporary Firebase session until user confirms email
-                await firebase.auth().signOut();
-
                 if (response.ok && data.success) {
+                    // If user registered for a paid package, redirect directly to Kasera checkout
+                    if (data.is_paid && data.redirect) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pendaftaran Berhasil!',
+                            text: data.message || 'Mengarahkan ke pembayaran paket...',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            customClass: { popup: 'swal2-dark-custom' }
+                        }).then(() => {
+                            window.location.href = data.redirect;
+                        });
+                        return;
+                    }
+
+                    // Free Tier: sign out temporary Firebase session until user confirms email
+                    await firebase.auth().signOut();
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Pendaftaran Berhasil!',

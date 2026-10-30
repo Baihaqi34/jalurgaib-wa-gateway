@@ -55,6 +55,8 @@ return [
         'base_url'           => env('KASERA_PAY_BASE_URL', 'https://pay.kasera.id/v1'),
         'webhook_secret'     => env('KASERA_PAY_WEBHOOK_SECRET'),
         'expires_in_minutes' => (int) env('KASERA_PAY_EXPIRES_IN_MINUTES', 60),
+        'fee_percent'        => (float) env('KASERA_PAY_FEE_PERCENT', 0.007),
+        'fee_fixed'          => (int) env('KASERA_PAY_FEE_FIXED', 250),
     ],
 
     /*

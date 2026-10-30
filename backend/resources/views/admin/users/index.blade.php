@@ -233,8 +233,15 @@
                             <td class="py-3.5 px-5 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
                                     
+                                    <!-- View Logs Button -->
+                                    <a href="{{ route('admin.logs.index', ['search' => $user->email]) }}"
+                                       class="h-8 px-2.5 rounded-lg bg-mono-950 hover:bg-mono-800 border border-mono-700 text-mono-300 hover:text-white text-[11px] font-bold shadow-sm inline-flex items-center justify-center gap-1 transition"
+                                       title="Lihat Log Aktivitas Pengguna">
+                                        <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                    </a>
+
                                     <!-- Edit Button -->
-                                    <button @click="openEditModal({{ json_encode($user) }})"
+                                    <button @click="openEditModal(@js($user))"
                                             class="h-8 px-3 rounded-lg mono-btn-secondary text-[11px] font-bold shadow-sm inline-flex items-center justify-center gap-1 transition"
                                             title="Edit Akun Pengguna">
                                         <i class="fa-solid fa-pen-to-square text-[10px]"></i> Edit
@@ -243,7 +250,7 @@
                                     <!-- Suspend / Activate Toggle -->
                                     @if($user->id !== auth()->id())
                                         @if($user->isSuspended())
-                                            <form action="{{ route('admin.users.activate', $user) }}" method="POST" class="inline" @submit.prevent="handleActivate($event, '{{ $user->name }}')">
+                                            <form action="{{ route('admin.users.activate', $user) }}" method="POST" class="inline" @submit.prevent="handleActivate($event, @js($user->name))">
                                                 @csrf
                                                 <button type="submit"
                                                         class="h-8 px-3 rounded-lg bg-mono-50 hover:bg-mono-200 text-mono-950 text-[11px] font-extrabold transition shadow-sm inline-flex items-center justify-center gap-1"
@@ -252,7 +259,7 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <button @click="openSuspendModal({{ json_encode($user) }})"
+                                            <button @click="openSuspendModal(@js($user))"
                                                     class="h-8 px-3 rounded-lg bg-mono-800 hover:bg-mono-700 border border-mono-600 text-mono-200 text-[11px] font-bold transition shadow-sm inline-flex items-center justify-center gap-1"
                                                     title="Suspend Akun">
                                                 <i class="fa-solid fa-ban text-[10px] text-amber-400"></i> Suspend
@@ -260,7 +267,7 @@
                                         @endif
 
                                         <!-- Delete Button with SweetAlert2 Confirmation -->
-                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" @submit.prevent="handleDelete($event, '{{ $user->name }}')">
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" @submit.prevent="handleDelete($event, @js($user->name))">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

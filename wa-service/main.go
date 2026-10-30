@@ -2,14 +2,20 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -189,7 +195,10 @@ func panicRecoveryMiddleware(next http.Handler) http.Handler {
 func validateAPIKey(r *http.Request) bool {
 	key := r.Header.Get("X-API-Key")
 	expected := os.Getenv("INTERNAL_API_KEY")
-	return key == expected && expected != ""
+	if expected == "" || key == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(key), []byte(expected)) == 1
 }
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -382,6 +391,97 @@ func handleDisconnect(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, APIResponse{Success: true, Message: "Device disconnected"})
 }
 
+var safeFilenameRegex = regexp.MustCompile(`^[a-zA-Z0-9_\-\.]+\.(jpg|jpeg|png|webp)$`)
+
+func isPrivateIP(ip net.IP) bool {
+	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsPrivate() || ip.IsUnspecified() {
+		return true
+	}
+	return false
+}
+
+func fetchMediaSafe(rawURL string) ([]byte, error) {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid media URL: %w", err)
+	}
+
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return nil, errors.New("only http and https schemes are supported for media attachments")
+	}
+
+	// 1. Check if this is a legitimate backend local uploads file (strict basename check)
+	if strings.Contains(parsed.Path, "/uploads/") {
+		filename := filepath.Base(parsed.Path)
+		if safeFilenameRegex.MatchString(strings.ToLower(filename)) && !strings.Contains(filename, "..") {
+			candidates := []string{
+				"../backend/public/uploads/" + filename,
+				"./backend/public/uploads/" + filename,
+				"./public/uploads/" + filename,
+			}
+			for _, c := range candidates {
+				cleanPath := filepath.Clean(c)
+				if info, statErr := os.Stat(cleanPath); statErr == nil && !info.IsDir() {
+					return os.ReadFile(cleanPath)
+				}
+			}
+		}
+	}
+
+	// 2. SSRF Protection for outbound HTTP fetch
+	hostname := parsed.Hostname()
+	if hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1" {
+		return nil, errors.New("access to local loopback is blocked for external media fetch (SSRF protection)")
+	}
+
+	ips, err := net.LookupIP(hostname)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve host %s: %w", hostname, err)
+	}
+
+	for _, ip := range ips {
+		if isPrivateIP(ip) {
+			return nil, errors.New("access to private IP addresses is forbidden (SSRF protection)")
+		}
+	}
+
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 3 {
+				return errors.New("stopped after 3 redirects")
+			}
+			h := req.URL.Hostname()
+			if h == "localhost" || h == "127.0.0.1" || h == "::1" {
+				return errors.New("redirect to private address blocked")
+			}
+			redirectIPs, err := net.LookupIP(h)
+			if err == nil {
+				for _, rip := range redirectIPs {
+					if isPrivateIP(rip) {
+						return errors.New("redirect to private network blocked")
+					}
+				}
+			}
+			return nil
+		},
+	}
+
+	resp, err := client.Get(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download media: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("remote media returned status: %d", resp.StatusCode)
+	}
+
+	// Limit to max 15MB
+	limitReader := io.LimitReader(resp.Body, 15*1024*1024)
+	return io.ReadAll(limitReader)
+}
+
 func handleSendText(w http.ResponseWriter, r *http.Request) {
 	var req SendTextRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -444,74 +544,30 @@ func handleSendText(w http.ResponseWriter, r *http.Request) {
 	msg := &waE2E.Message{}
 
 	if req.MediaURL != "" {
-		var data []byte
-		var err error
-
-		// 1. Cek apakah file ada di direktori lokal backend/public
-		localPath := ""
-		if strings.Contains(req.MediaURL, "/uploads/") {
-			parts := strings.Split(req.MediaURL, "/uploads/")
-			if len(parts) > 1 {
-				// Coba baca langsung dari path lokal project
-				candidates := []string{
-					"../backend/public/uploads/" + parts[1],
-					"./backend/public/uploads/" + parts[1],
-					"./public/uploads/" + parts[1],
-					"/var/www/html/jalurgaib-wa-gateway/backend/public/uploads/" + parts[1],
-				}
-				for _, c := range candidates {
-					if _, statErr := os.Stat(c); statErr == nil {
-						localPath = c
-						break
-					}
-				}
-			}
-		}
-
-		if localPath != "" {
-			log.Printf("[%s] Reading local media file: %s", req.DeviceID, localPath)
-			data, err = os.ReadFile(localPath)
-			if err != nil {
-				log.Printf("[%s] Failed to read local media file: %v", req.DeviceID, err)
-			}
-		}
-
-		// 2. Jika bukan file lokal atau gagal baca lokal, download via HTTP
-		if len(data) == 0 {
-			log.Printf("[%s] Downloading media attachment via HTTP from: %s", req.DeviceID, req.MediaURL)
-			resp, httpErr := http.Get(req.MediaURL)
-			if httpErr != nil {
-				log.Printf("[%s] Media HTTP download failed: %v", req.DeviceID, httpErr)
-			} else if resp.StatusCode != http.StatusOK {
-				log.Printf("[%s] Media HTTP download returned status: %d", req.DeviceID, resp.StatusCode)
-				resp.Body.Close()
-			} else {
-				data, err = io.ReadAll(resp.Body)
-				resp.Body.Close()
-				if err != nil {
-					log.Printf("[%s] Media read failed: %v", req.DeviceID, err)
-				}
-			}
-		}
-
-		if len(data) > 0 {
+		data, err := fetchMediaSafe(req.MediaURL)
+		if err != nil {
+			log.Printf("[%s] Media fetch rejected/failed: %v", req.DeviceID, err)
+		} else if len(data) > 0 {
 			mimeType := http.DetectContentType(data)
-			log.Printf("[%s] Uploading %d bytes (mime: %s) to WhatsApp CDN...", req.DeviceID, len(data), mimeType)
-			
-			uploaded, err := client.Upload(context.Background(), data, whatsmeow.MediaImage)
-			if err != nil {
-				log.Printf("[%s] WhatsApp CDN upload failed: %v", req.DeviceID, err)
+			if !strings.HasPrefix(mimeType, "image/") {
+				log.Printf("[%s] Rejected media with non-image mime type: %s", req.DeviceID, mimeType)
 			} else {
-				log.Printf("[%s] WhatsApp CDN upload success! DirectPath: %s", req.DeviceID, uploaded.DirectPath)
-				msg.ImageMessage = &waE2E.ImageMessage{
-					Caption:       proto.String(req.Message),
-					URL:           proto.String(uploaded.URL),
-					DirectPath:    proto.String(uploaded.DirectPath),
-					MediaKey:      uploaded.MediaKey,
-					Mimetype:      proto.String(mimeType),
-					FileEncSHA256: uploaded.FileEncSHA256,
-					FileSHA256:    uploaded.FileSHA256,
-					FileLength:    proto.Uint64(uint64(len(data))),
+				log.Printf("[%s] Uploading %d bytes (mime: %s) to WhatsApp CDN...", req.DeviceID, len(data), mimeType)
+				uploaded, err := client.Upload(context.Background(), data, whatsmeow.MediaImage)
+				if err != nil {
+					log.Printf("[%s] WhatsApp CDN upload failed: %v", req.DeviceID, err)
+				} else {
+					log.Printf("[%s] WhatsApp CDN upload success! DirectPath: %s", req.DeviceID, uploaded.DirectPath)
+					msg.ImageMessage = &waE2E.ImageMessage{
+						Caption:       proto.String(req.Message),
+						URL:           proto.String(uploaded.URL),
+						DirectPath:    proto.String(uploaded.DirectPath),
+						MediaKey:      uploaded.MediaKey,
+						Mimetype:      proto.String(mimeType),
+						FileEncSHA256: uploaded.FileEncSHA256,
+						FileSHA256:    uploaded.FileSHA256,
+						FileLength:    proto.Uint64(uint64(len(data))),
+					}
 				}
 			}
 		}
@@ -555,27 +611,15 @@ func handleSendText(w http.ResponseWriter, r *http.Request) {
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	sessionMgr.mu.RLock()
 	count := len(sessionMgr.clients)
-	activeList := make([]map[string]interface{}, 0)
-	for devID, client := range sessionMgr.clients {
-		item := map[string]interface{}{
-			"device_id": devID,
-			"connected": client.IsConnected(),
-			"logged_in": client.IsLoggedIn(),
-		}
-		if client.Store.ID != nil {
-			item["jid"] = client.Store.ID.String()
-		}
-		activeList = append(activeList, item)
-	}
 	sessionMgr.mu.RUnlock()
 
 	respondJSON(w, http.StatusOK, APIResponse{
 		Success: true,
 		Message: "WA Service running",
 		Data: map[string]interface{}{
+			"status":         "healthy",
 			"active_devices": count,
-			"devices":        activeList,
-			"uptime":         time.Now().Format(time.RFC3339),
+			"timestamp":      time.Now().Format(time.RFC3339),
 		},
 	})
 }

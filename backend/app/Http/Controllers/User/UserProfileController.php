@@ -31,7 +31,14 @@ class UserProfileController extends Controller
 
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => [
+                'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id),
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!$user->isAdmin() && str_starts_with(strtolower(trim($value)), 'admin@')) {
+                        $fail('Alamat email dengan awalan admin@ dicadangkan untuk administrator.');
+                    }
+                }
+            ],
         ], [
             'name.required'  => 'Nama lengkap wajib diisi.',
             'email.required' => 'Alamat email wajib diisi.',
@@ -41,7 +48,7 @@ class UserProfileController extends Controller
 
         $user->update([
             'name'  => $validated['name'],
-            'email' => $validated['email'],
+            'email' => strtolower(trim($validated['email'])),
         ]);
 
         return redirect()->route('user.profile')

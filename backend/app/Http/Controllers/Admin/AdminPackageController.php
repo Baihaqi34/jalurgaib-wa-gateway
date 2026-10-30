@@ -106,6 +106,14 @@ class AdminPackageController extends Controller
             'sort_order'          => 'nullable|integer|min:0',
         ]);
 
+        // Safeguard: Do not allow the sole free package to have price > 0
+        if (($package->slug === 'free' || $package->price === 0) && (int) $validated['price'] > 0) {
+            $otherFree = Package::where('id', '!=', $package->id)->where('price', 0)->where('status', 'active')->exists();
+            if (!$otherFree) {
+                return back()->withInput()->with('error', 'Paket gratis dasar sistem tidak boleh diberi harga lebih dari Rp 0 kecuali sudah ada paket gratis lain yang berstatus aktif.');
+            }
+        }
+
         $benefitsArray = $this->parseBenefits($validated['benefits'] ?? '');
 
         $package->update([

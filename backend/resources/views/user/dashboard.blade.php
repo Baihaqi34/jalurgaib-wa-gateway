@@ -268,7 +268,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-bold text-mono-100 group-hover:text-white transition flex items-center gap-1">
-                        <span>API Key & SDK</span>
+                        <span>API Key</span>
                         <i class="fa-solid fa-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
                     </h4>
                     <p class="text-[11px] text-mono-400 mt-1 leading-relaxed">Generate token REST API & integrasikan dengan website Anda.</p>

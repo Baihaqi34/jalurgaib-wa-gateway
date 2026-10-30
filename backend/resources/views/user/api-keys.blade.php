@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'API Key & SDK — JalurGaib WA Gateway')
-@section('header_title', 'API Key & Integrasi SDK')
-@section('header_subtitle', 'Kelola Token Rahasia, Pengaturan Webhook & Panduan Integrasi REST API')
+@section('title', 'API Key — JalurGaib WA Gateway')
+@section('header_title', 'API Key')
+@section('header_subtitle', 'Kelola Token Rahasia & Kunci Akses Autentikasi Gateway')
 
 @section('content')
-<div x-data="userApiKeysApp()" class="space-y-8 font-sans max-w-6xl">
+<div x-data="userApiKeysApp()" class="space-y-6 font-sans max-w-6xl">
 
     <!-- Top Action Card -->
     <div class="mono-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -20,9 +20,10 @@
         </div>
 
         <div class="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
-            <a href="{{ route('docs') }}" class="px-3.5 py-2.5 rounded-xl bg-mono-850 hover:bg-mono-800 border border-mono-700 text-mono-300 hover:text-white text-xs font-semibold transition inline-flex items-center gap-1.5">
+            <a href="{{ route('docs') }}" target="_blank" class="px-3.5 py-2.5 rounded-xl bg-mono-850 hover:bg-mono-800 border border-mono-700 text-mono-300 hover:text-white text-xs font-semibold transition inline-flex items-center gap-1.5">
                 <i class="fa-solid fa-book-bookmark text-xs"></i>
                 <span>Buka Dokumentasi</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-mono-400"></i>
             </a>
 
             <button type="button" @click="createApiKey()" class="px-4 py-2.5 rounded-xl mono-btn-primary font-bold text-xs inline-flex items-center gap-2 shadow-md hover:scale-[1.01] transition">
@@ -88,125 +89,21 @@
         </div>
     </div>
 
-    <!-- Interactive SDK Integration Snippets -->
-    <div class="mono-card p-6 sm:p-8" x-data="{ sdkTab: 'curl' }">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-mono-800">
+    <!-- Integration Documentation Guide Card -->
+    <div class="mono-card p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-mono-700/80">
+        <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-mono-850 border border-mono-700 flex items-center justify-center text-mono-200 flex-shrink-0">
+                <i class="fa-solid fa-book-bookmark text-sm"></i>
+            </div>
             <div>
-                <h4 class="text-sm font-bold text-mono-50 flex items-center gap-2">
-                    <i class="fa-solid fa-code text-mono-400"></i>
-                    <span>Contoh Integrasi Kode SDK</span>
-                </h4>
-                <p class="text-xs text-mono-400 mt-0.5">Salin cuplikan kode di bawah ini ke dalam backend atau aplikasi Anda</p>
-            </div>
-
-            <!-- Language Tabs -->
-            <div class="flex gap-1.5 p-1 bg-mono-950 border border-mono-700 rounded-xl">
-                <button type="button" @click="sdkTab = 'curl'" :class="sdkTab === 'curl' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-mono transition">cURL</button>
-                <button type="button" @click="sdkTab = 'php'" :class="sdkTab === 'php' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-mono transition">PHP / Laravel</button>
-                <button type="button" @click="sdkTab = 'js'" :class="sdkTab === 'js' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-mono transition">Node.js</button>
-                <button type="button" @click="sdkTab = 'py'" :class="sdkTab === 'py' ? 'bg-mono-50 text-mono-950 font-bold shadow-sm' : 'text-mono-400 hover:text-white'" class="px-3 py-1 rounded-lg text-xs font-mono transition">Python</button>
+                <h4 class="text-xs font-bold text-mono-100">Panduan Integrasi & Contoh Kodingan Lengkap</h4>
+                <p class="text-[11px] text-mono-400 mt-0.5">Lihat daftar endpoint REST API, parameter JSON, webhook, dan contoh kode PHP/Laravel, Node.js, Python, & cURL di halaman dokumentasi.</p>
             </div>
         </div>
-
-        @php
-            $sampleKey = $apiKeys->first()->key ?? 'wag_your_api_key_here';
-            $sampleDevice = auth()->user()->devices()->where('status', 'connected')->first()->device_id ?? 'dev_your_device_id';
-        @endphp
-
-        <!-- cURL Snippet -->
-        <div x-show="sdkTab === 'curl'" class="relative">
-            <pre class="p-4 bg-mono-950 rounded-xl border border-mono-800 text-xs font-mono text-mono-200 overflow-x-auto leading-relaxed"><code>curl -X POST "{{ url('/api/messages/send') }}" \
-  -H "X-API-Key: {{ $sampleKey }}" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "device_id": "{{ $sampleDevice }}",
-    "to": "081234567890",
-    "message": "Halo! Ini adalah pesan otomatis dari JalurGaib WA Gateway 🚀",
-    "delay": 2
-  }'</code></pre>
-            <button type="button" @click="copyCode($el.previousElementSibling.innerText)" class="absolute top-3 right-3 px-2.5 py-1 rounded bg-mono-800 hover:bg-mono-700 text-mono-300 text-[11px] font-mono border border-mono-700 inline-flex items-center gap-1 transition">
-                <i class="fa-regular fa-copy"></i>
-                <span>Salin</span>
-            </button>
-        </div>
-
-        <!-- PHP / Laravel Snippet -->
-        <div x-show="sdkTab === 'php'" x-cloak class="relative">
-            <pre class="p-4 bg-mono-950 rounded-xl border border-mono-800 text-xs font-mono text-mono-200 overflow-x-auto leading-relaxed"><code>use Illuminate\Support\Facades\Http;
-
-$response = Http::withHeaders([
-    'X-API-Key' => '{{ $sampleKey }}',
-    'Accept'    => 'application/json',
-])->post('{{ url('/api/messages/send') }}', [
-    'device_id' => '{{ $sampleDevice }}',
-    'to'        => '081234567890',
-    'message'   => 'Halo! Pesanan Anda telah kami terima.',
-    'delay'     => 2,
-]);
-
-if ($response->successful()) {
-    $data = $response->json();
-    // Pesan berhasil terkirim
-}</code></pre>
-            <button type="button" @click="copyCode($el.previousElementSibling.innerText)" class="absolute top-3 right-3 px-2.5 py-1 rounded bg-mono-800 hover:bg-mono-700 text-mono-300 text-[11px] font-mono border border-mono-700 inline-flex items-center gap-1 transition">
-                <i class="fa-regular fa-copy"></i>
-                <span>Salin</span>
-            </button>
-        </div>
-
-        <!-- Node.js Snippet -->
-        <div x-show="sdkTab === 'js'" x-cloak class="relative">
-            <pre class="p-4 bg-mono-950 rounded-xl border border-mono-800 text-xs font-mono text-mono-200 overflow-x-auto leading-relaxed"><code>const axios = require('axios');
-
-async function kirimPesan() {
-    try {
-        const response = await axios.post('{{ url('/api/messages/send') }}', {
-            device_id: '{{ $sampleDevice }}',
-            to: '081234567890',
-            message: 'Halo via Node.js Gateway!',
-            delay: 2
-        }, {
-            headers: {
-                'X-API-Key': '{{ $sampleKey }}',
-                'Content-Type': 'application/json'
-            }
-        });
-        console.log(response.data);
-    } catch (error) {
-        console.error(error.response ? error.response.data : error.message);
-    }
-}
-kirimPesan();</code></pre>
-            <button type="button" @click="copyCode($el.previousElementSibling.innerText)" class="absolute top-3 right-3 px-2.5 py-1 rounded bg-mono-800 hover:bg-mono-700 text-mono-300 text-[11px] font-mono border border-mono-700 inline-flex items-center gap-1 transition">
-                <i class="fa-regular fa-copy"></i>
-                <span>Salin</span>
-            </button>
-        </div>
-
-        <!-- Python Snippet -->
-        <div x-show="sdkTab === 'py'" x-cloak class="relative">
-            <pre class="p-4 bg-mono-950 rounded-xl border border-mono-800 text-xs font-mono text-mono-200 overflow-x-auto leading-relaxed"><code>import requests
-
-url = "{{ url('/api/messages/send') }}"
-headers = {
-    "X-API-Key": "{{ $sampleKey }}",
-    "Content-Type": "application/json"
-}
-payload = {
-    "device_id": "{{ $sampleDevice }}",
-    "to": "081234567890",
-    "message": "Halo dari Python Gateway Client!",
-    "delay": 2
-}
-
-response = requests.post(url, json=payload, headers=headers)
-print(response.json())</code></pre>
-            <button type="button" @click="copyCode($el.previousElementSibling.innerText)" class="absolute top-3 right-3 px-2.5 py-1 rounded bg-mono-800 hover:bg-mono-700 text-mono-300 text-[11px] font-mono border border-mono-700 inline-flex items-center gap-1 transition">
-                <i class="fa-regular fa-copy"></i>
-                <span>Salin</span>
-            </button>
-        </div>
+        <a href="{{ route('docs') }}" target="_blank" class="px-4 py-2 rounded-xl mono-btn-primary font-bold text-xs inline-flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+            <span>Buka Dokumentasi REST API</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+        </a>
     </div>
 </div>
 

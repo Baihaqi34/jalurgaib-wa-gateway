@@ -64,11 +64,11 @@
             Integrasi & Akun
         </div>
 
-        <!-- API Keys & SDK -->
+        <!-- API Key -->
         <a href="{{ route('user.api-keys') }}"
            class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('user.api-keys') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
             <i class="fa-solid fa-key text-sm w-4 text-center {{ request()->routeIs('user.api-keys') ? 'text-mono-950' : 'text-mono-400' }}"></i>
-            <span>API Key & SDK</span>
+            <span>API Key</span>
         </a>
 
         <!-- Upgrade Paket -->
@@ -78,6 +78,13 @@
             <span>Upgrade Paket</span>
         </a>
 
+        <!-- Riwayat Pembayaran -->
+        <a href="{{ route('user.orders') }}"
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('user.orders') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-receipt text-sm w-4 text-center {{ request()->routeIs('user.orders') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+            <span>Riwayat Pembayaran</span>
+        </a>
+
         <!-- Profil & Keamanan -->
         <a href="{{ route('user.profile') }}"
            class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('user.profile') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
@@ -85,11 +92,14 @@
             <span>Profil & Password</span>
         </a>
 
-        <!-- Dokumentasi REST API -->
-        <a href="{{ route('docs') }}"
-           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('docs') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <i class="fa-solid fa-book-bookmark text-sm w-4 text-center {{ request()->routeIs('docs') ? 'text-mono-950' : 'text-mono-400' }}"></i>
-            <span>Dokumentasi REST API</span>
+        <!-- Dokumentasi REST API (Buka di Tab/Halaman Baru) -->
+        <a href="{{ route('docs') }}" target="_blank"
+           class="sidebar-nav-item flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('docs') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-book-bookmark text-sm w-4 text-center {{ request()->routeIs('docs') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+                <span>Dokumentasi REST API</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-mono-400"></i>
         </a>
     </div>
 

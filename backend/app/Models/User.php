@@ -34,7 +34,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return strtolower($this->role ?? '') === 'admin' || str_contains(strtolower($this->email), 'admin@');
+        return strtolower($this->role ?? '') === 'admin';
     }
 
     public function isUser(): bool
@@ -62,18 +62,58 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    public function loginLogs(): HasMany
+    {
+        return $this->hasMany(UserLoginLog::class);
+    }
+
+    /**
+     * Get active pending order if within expiration time window.
+     */
+    public function getActivePendingOrder(): ?Order
+    {
+        $expiresInMinutes = (int) config('services.kasera.expires_in_minutes', 60);
+
+        // Auto-expire pending orders exceeding the expiration window
+        $this->orders()
+            ->where('status', 'pending')
+            ->where('created_at', '<', now()->subMinutes($expiresInMinutes))
+            ->update(['status' => 'expired']);
+
+        return $this->orders()
+            ->with('package')
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+    }
+
     public function isPackageExpired(): bool
     {
-        return $this->package_expires_at !== null && $this->package_expires_at->isPast();
+        // Free tier packages never expire
+        if ($this->package && $this->package->isFree()) {
+            return false;
+        }
+
+        // Paid package requires package_expires_at to be set and in the future
+        if ($this->package && !$this->package->isFree()) {
+            return $this->package_expires_at === null || $this->package_expires_at->isPast();
+        }
+
+        return false;
     }
 
     public function getPackage(): Package
     {
         if ($this->package) {
-            if ($this->package_expires_at && $this->package_expires_at->isPast()) {
-                return Package::getDefaultPackage();
+            // Free tier package is always active
+            if ($this->package->isFree()) {
+                return $this->package;
             }
-            return $this->package;
+
+            // Paid package is ONLY active if package_expires_at is set and in the future
+            if ($this->package_expires_at && $this->package_expires_at->isFuture()) {
+                return $this->package;
+            }
         }
 
         return Package::getDefaultPackage();

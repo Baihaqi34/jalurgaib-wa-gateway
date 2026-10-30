@@ -38,6 +38,10 @@ class PaymentCheckoutController extends Controller
                     ->with('success', 'Paket gratis berhasil diaktifkan untuk akun Anda.');
             }
 
+            if (!empty($result['order'])) {
+                app(\App\Services\AuthenticationLogService::class)->logCheckout($user, $result['order'], $request);
+            }
+
             return redirect()->away($result['checkout_url']);
 
         } catch (\Throwable $e) {
@@ -71,6 +75,8 @@ class PaymentCheckoutController extends Controller
             ->firstOrFail();
 
         $order->update(['status' => 'canceled']);
+
+        app(\App\Services\AuthenticationLogService::class)->logPaymentCanceled($user, $order, $request);
 
         return redirect()->route('user.upgrade')
             ->with('success', "Pesanan {$order->order_no} telah dibatalkan. Anda dapat membuat pembayaran baru.");

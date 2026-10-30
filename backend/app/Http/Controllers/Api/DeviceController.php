@@ -57,7 +57,7 @@ class DeviceController extends Controller
             $pkg = $user->getPackage();
             return response()->json([
                 'success' => false,
-                'message' => "Batas maksimal perangkat untuk paket {$pkg->name} (Maks {$user->getMaxDevices()} nomor) telah tercapai. Hubungi Admin untuk upgrade paket Anda.",
+                'message' => "Batas maksimal perangkat untuk paket {$pkg->name} (Maks {$user->getMaxDevices()} nomor) telah tercapai.Upgrade paket Anda Untuk Kapasitas Lebih Besar.",
                 'error_code' => 'DEVICE_LIMIT_REACHED',
                 'current_devices' => $user->devices()->count(),
                 'max_devices' => $user->getMaxDevices(),

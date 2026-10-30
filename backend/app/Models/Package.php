@@ -81,31 +81,54 @@ class Package extends Model
 
     /**
      * Get default Free package or create a fallback instance.
+     * Guaranteed to ALWAYS return a package with price == 0.
      */
     public static function getDefaultPackage(): self
     {
-        $package = self::where('slug', 'free')->first();
+        $package = self::where('slug', 'free')->where('price', 0)->first();
         if (!$package) {
-            $package = self::where('price', 0)->where('status', 'active')->first();
+            $package = self::where('price', 0)->where('status', 'active')->orderBy('sort_order', 'asc')->first();
         }
         if (!$package) {
-            // Fallback object in memory if table is not seeded yet
-            $package = new self([
-                'name'                => 'Free Tier',
-                'slug'                => 'free',
-                'description'         => 'Paket gratis standar untuk memulai gateway',
-                'price'               => 0,
-                'max_devices'         => 2,
-                'daily_message_limit' => 50,
-                'benefits'            => [
-                    '2 Slot Perangkat WhatsApp',
-                    '50 Kuota Pesan per Hari',
-                    'Akses REST API & Webhook',
-                    'Multi-Device Delivery',
-                ],
-                'status'              => 'active',
-                'badge'               => 'Gratis',
-            ]);
+            try {
+                $package = self::firstOrCreate(
+                    ['slug' => 'free'],
+                    [
+                        'name'                => 'Free Tier',
+                        'description'         => 'Paket gratis standar untuk memulai gateway',
+                        'price'               => 0,
+                        'max_devices'         => 2,
+                        'daily_message_limit' => 50,
+                        'benefits'            => [
+                            '2 Slot Perangkat WhatsApp',
+                            '50 Kuota Pesan per Hari',
+                            'Akses REST API & Webhook',
+                            'Multi-Device Delivery',
+                        ],
+                        'status'              => 'active',
+                        'badge'               => 'Gratis',
+                        'sort_order'          => 1,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                // Fallback object in memory if table is not migrated or write fails
+                $package = new self([
+                    'name'                => 'Free Tier',
+                    'slug'                => 'free',
+                    'description'         => 'Paket gratis standar untuk memulai gateway',
+                    'price'               => 0,
+                    'max_devices'         => 2,
+                    'daily_message_limit' => 50,
+                    'benefits'            => [
+                        '2 Slot Perangkat WhatsApp',
+                        '50 Kuota Pesan per Hari',
+                        'Akses REST API & Webhook',
+                        'Multi-Device Delivery',
+                    ],
+                    'status'              => 'active',
+                    'badge'               => 'Gratis',
+                ]);
+            }
         }
         return $package;
     }

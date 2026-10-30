@@ -39,12 +39,21 @@ class AuthController extends Controller
         $remember = (bool) $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-
             $user = Auth::user();
-            if ($user->isAdmin() && $user->role !== 'admin') {
-                $user->update(['role' => 'admin']);
+
+            // Strict Check: Block suspended/banned users from web dashboard
+            if ($user->isSuspended()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $reason = $user->suspend_reason ?: 'Silakan hubungi administrator.';
+                return back()->withErrors([
+                    'email' => 'Akun Anda sedang ditangguhkan: ' . $reason,
+                ])->onlyInput('email');
             }
+
+            $request->session()->regenerate();
 
             return $user->isAdmin()
                 ? redirect()->route('admin.dashboard')
@@ -76,8 +85,19 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email',
-            'password'   => 'required|string|min:6|confirmed',
+            'email'      => [
+                'required',
+                'email',
+                'max:191',
+                'unique:users,email',
+                function ($attribute, $value, $fail) {
+                    // Prevent self-registering with administrative reserved prefixes
+                    if (str_starts_with(strtolower(trim($value)), 'admin@')) {
+                        $fail('Alamat email dengan awalan admin@ dicadangkan untuk sistem internal.');
+                    }
+                },
+            ],
+            'password'   => 'required|string|min:8|confirmed',
             'package_id' => 'nullable|exists:packages,id',
         ]);
 
@@ -87,11 +107,12 @@ class AuthController extends Controller
             : null;
 
         $user = User::create([
-            'name'       => $validated['name'],
-            'email'      => $validated['email'],
-            'password'   => Hash::make($validated['password']),
-            'role'       => 'user',
-            'package_id' => $freePackage->id,
+            'name'               => $validated['name'],
+            'email'              => strtolower(trim($validated['email'])),
+            'password'           => Hash::make($validated['password']),
+            'role'               => 'user',
+            'package_id'         => $freePackage->id,
+            'package_expires_at' => null,
         ]);
 
         // Auto-generate starter API Key for the new user
@@ -124,69 +145,54 @@ class AuthController extends Controller
     }
 
     /**
-     * Helper to verify and parse Firebase ID Token via Google Identity Toolkit or JWT fallback.
+     * Helper to verify and parse Firebase ID Token strictly via Google Identity Toolkit.
+     * Note: Unsigned JWT fallback is removed to eliminate signature bypass vulnerabilities.
      */
     private function verifyFirebaseIdToken(string $idToken): ?array
     {
         $firebaseConfig = config('services.firebase');
         $apiKey = $firebaseConfig['api_key'] ?? '';
-        $firebaseUser = null;
 
-        // 1. Verify via Google Identity Toolkit if API Key exists
-        if (!empty($apiKey)) {
-            try {
-                $response = Http::timeout(10)->post(
-                    "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={$apiKey}",
-                    ['idToken' => $idToken]
-                );
-
-                if ($response->successful()) {
-                    $users = $response->json('users');
-                    if (!empty($users[0])) {
-                        $u = $users[0];
-                        $firebaseUser = [
-                            'uid'            => $u['localId'] ?? null,
-                            'email'          => $u['email'] ?? null,
-                            'displayName'    => $u['displayName'] ?? null,
-                            'photoUrl'       => $u['photoUrl'] ?? null,
-                            'email_verified' => (bool) ($u['emailVerified'] ?? false),
-                        ];
-                    }
-                } else {
-                    Log::warning('Firebase Token Verification Failed via Google Identity Toolkit: ' . $response->body());
-                }
-            } catch (\Throwable $e) {
-                Log::error('Firebase verification connection error: ' . $e->getMessage());
-            }
+        if (empty($apiKey)) {
+            Log::error('Firebase verification aborted: FIREBASE_API_KEY is not configured in .env.');
+            return null;
         }
 
-        // 2. Fallback: Parse ID Token JWT Payload directly
-        if (!$firebaseUser) {
-            $parts = explode('.', $idToken);
-            if (count($parts) === 3) {
-                $payloadJson = base64_decode(strtr($parts[1], '-_', '+/'));
-                $claims = json_decode($payloadJson, true);
+        try {
+            $response = Http::timeout(10)->post(
+                "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={$apiKey}",
+                ['idToken' => $idToken]
+            );
 
-                if (is_array($claims) && !empty($claims['sub']) && !empty($claims['email'])) {
-                    $firebaseUser = [
-                        'uid'            => $claims['user_id'] ?? $claims['sub'],
-                        'email'          => $claims['email'],
-                        'displayName'    => $claims['name'] ?? null,
-                        'photoUrl'       => $claims['picture'] ?? null,
-                        'email_verified' => (bool) ($claims['email_verified'] ?? false),
+            if ($response->successful()) {
+                $users = $response->json('users');
+                if (!empty($users[0])) {
+                    $u = $users[0];
+                    return [
+                        'uid'            => $u['localId'] ?? null,
+                        'email'          => $u['email'] ?? null,
+                        'displayName'    => $u['displayName'] ?? null,
+                        'photoUrl'       => $u['photoUrl'] ?? null,
+                        'email_verified' => (bool) ($u['emailVerified'] ?? false),
                     ];
                 }
             }
-        }
 
-        return $firebaseUser;
+            Log::warning('Firebase Token Verification Failed via Google Identity Toolkit: ' . $response->body());
+            return null;
+        } catch (\Throwable $e) {
+            Log::error('Firebase verification connection error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
      * Register a new user using Firebase credentials (pending email verification).
      */
-    public function firebaseRegister(Request $request): JsonResponse
-    {
+    public function firebaseRegister(
+        Request $request,
+        \App\Services\SubscriptionPaymentService $paymentService
+    ): JsonResponse {
         $validated = $request->validate([
             'id_token'   => 'required|string',
             'package_id' => 'nullable|exists:packages,id',
@@ -217,13 +223,20 @@ class AuthController extends Controller
         }
 
         $freePackage = Package::getDefaultPackage();
+        $requestedPackage = !empty($validated['package_id'])
+            ? Package::where('status', 'active')->find($validated['package_id'])
+            : null;
+
+        // User must ALWAYS be registered with the Free Tier package initially.
+        // Paid packages require payment before activation.
         $userData = [
-            'name'              => $displayName,
-            'email'             => $email,
-            'email_verified_at' => $firebaseUser['email_verified'] ? now() : null,
-            'password'          => Hash::make($validated['password'] ?? Str::random(32)),
-            'role'              => 'user',
-            'package_id'        => $validated['package_id'] ?? $freePackage->id,
+            'name'               => $displayName,
+            'email'              => $email,
+            'email_verified_at'  => $firebaseUser['email_verified'] ? now() : null,
+            'password'           => Hash::make($validated['password'] ?? Str::random(32)),
+            'role'               => 'user',
+            'package_id'         => $freePackage->id,
+            'package_expires_at' => null,
         ];
         if ($hasFirebaseCol && $uid) {
             $userData['firebase_uid'] = $uid;
@@ -238,9 +251,41 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
+        // If user registered for a paid package, initiate Kasera Pay checkout and return redirect URL
+        if ($requestedPackage && !$requestedPackage->isFree()) {
+            Auth::login($newUser, true);
+            $request->session()->regenerate();
+
+            try {
+                $result = $paymentService->initiateCheckout($newUser, $requestedPackage);
+                return response()->json([
+                    'success'      => true,
+                    'is_paid'      => true,
+                    'message'      => 'Akun Anda berhasil dibuat! Mengarahkan ke gateway pembayaran paket ' . $requestedPackage->name . '...',
+                    'redirect'     => $result['checkout_url'],
+                    'checkout_url' => $result['checkout_url'],
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Firebase Register Checkout Error: ' . $e->getMessage(), [
+                    'user_id'    => $newUser->id,
+                    'package_id' => $requestedPackage->id,
+                ]);
+
+                return response()->json([
+                    'success'      => true,
+                    'is_paid'      => true,
+                    'message'      => 'Akun berhasil dibuat. Terjadi kendala saat menghubungkan ke gateway pembayaran: ' . $e->getMessage(),
+                    'redirect'     => route('user.upgrade'),
+                    'checkout_url' => route('user.upgrade'),
+                ]);
+            }
+        }
+
         return response()->json([
             'success'        => true,
+            'is_paid'        => false,
             'message'        => 'Pendaftaran berhasil! Link verifikasi resmi dari Google telah dikirimkan ke email Anda.',
+            'redirect'       => route('login'),
             'email_verified' => (bool) $firebaseUser['email_verified'],
         ]);
     }
@@ -374,6 +419,11 @@ class AuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        $currentUser = Auth::user();
+        if ($currentUser) {
+            app(\App\Services\AuthenticationLogService::class)->logLogout($currentUser, $request);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

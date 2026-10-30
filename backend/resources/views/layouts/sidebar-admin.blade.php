@@ -46,6 +46,13 @@
             <span>Users</span>
         </a>
 
+        <!-- Log Aktivitas (Audit Trail: Login, Logout, Pembayaran) -->
+        <a href="{{ route('admin.logs.index') }}"
+           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.logs.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <i class="fa-solid fa-clock-rotate-left text-sm w-4 text-center {{ request()->routeIs('admin.logs.*') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+            <span>Log Aktivitas</span>
+        </a>
+
         <!-- Manajemen Paket & Tier (CRUD) -->
         <a href="{{ route('admin.packages.index') }}"
            class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.packages.*') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
@@ -67,11 +74,14 @@
             <span>Testimoni Landing</span>
         </a>
 
-        <!-- Dokumentasi REST API -->
-        <a href="{{ route('admin.docs') }}"
-           class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.docs') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
-            <i class="fa-solid fa-book-bookmark text-sm w-4 text-center {{ request()->routeIs('admin.docs') ? 'text-mono-950' : 'text-mono-400' }}"></i>
-            <span>Dokumentasi REST API</span>
+        <!-- Dokumentasi REST API (Buka di Tab/Halaman Baru) -->
+        <a href="{{ route('admin.docs') }}" target="_blank"
+           class="sidebar-nav-item flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition {{ request()->routeIs('admin.docs') ? 'active bg-mono-50 text-mono-950 shadow-md font-extrabold' : 'text-mono-300 hover:text-white hover:bg-mono-800/60' }}">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-book-bookmark text-sm w-4 text-center {{ request()->routeIs('admin.docs') ? 'text-mono-950' : 'text-mono-400' }}"></i>
+                <span>Dokumentasi REST API</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-mono-400"></i>
         </a>
 
         <div class="px-3 pt-4 pb-2 text-[10px] font-extrabold text-mono-500 uppercase tracking-widest font-mono">

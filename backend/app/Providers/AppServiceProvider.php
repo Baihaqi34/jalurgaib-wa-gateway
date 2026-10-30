@@ -29,5 +29,25 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Automatic authentication telemetry logging
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            if ($event->user instanceof \App\Models\User) {
+                app(\App\Services\AuthenticationLogService::class)->logLogin($event->user, request(), 'session');
+            }
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Logout::class, function ($event) {
+            if ($event->user instanceof \App\Models\User) {
+                app(\App\Services\AuthenticationLogService::class)->logLogout($event->user, request());
+            }
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Failed::class, function ($event) {
+            $email = $event->credentials['email'] ?? ($event->user?->email ?? '');
+            if (!empty($email)) {
+                app(\App\Services\AuthenticationLogService::class)->logFailed($email, request(), 'Email atau password salah');
+            }
+        });
     }
 }

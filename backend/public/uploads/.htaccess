@@ -1,0 +1,45 @@
+# ==============================================================================
+# JalurGaib WA Gateway - Uploads Directory Strict Hardening
+# ==============================================================================
+
+# 1. Turn off script execution engines
+Options -Indexes -ExecCGI
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 2. Block any and all script extensions (Apache 2.4 & 2.2 compatible)
+<FilesMatch "(?i)\.(php|phtml|php[0-9]|phar|sh|pl|py|cgi|asp|aspx|jsp|exe|dll|bat|cmd|vbs)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Strip script handlers and prevent MIME sniffing
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+
+# 4. Only allow genuine media extensions to be accessed
+<FilesMatch "(?i)\.(jpg|jpeg|png|webp|gif|ico|pdf|mp4|mp3|ogg|wav)$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</FilesMatch>

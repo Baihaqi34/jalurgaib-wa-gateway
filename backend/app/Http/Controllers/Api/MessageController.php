@@ -30,14 +30,147 @@ class MessageController extends Controller
      */
     public function sendText(Request $request): JsonResponse
     {
+        // 1. Dukung alias nama field upload: 'file', 'photo', 'picture', 'attachment', 'media' -> dipetakan ke 'image'
+        $uploadedFile = $request->file('image')
+            ?? $request->file('file')
+            ?? $request->file('photo')
+            ?? $request->file('picture')
+            ?? $request->file('attachment')
+            ?? $request->file('media');
+
+        if ($uploadedFile && !$request->hasFile('image')) {
+            $request->files->set('image', $uploadedFile);
+        }
+
+        // 2. Deteksi dini error upload dari PHP engine (misal upload_max_filesize di php.ini)
+        $rawFile = $request->file('image');
+        if ($rawFile && !$rawFile->isValid()) {
+            $uploadError = $rawFile->getError();
+            $maxIni = ini_get('upload_max_filesize') ?: '2M';
+            $postIni = ini_get('post_max_size') ?: '8M';
+            $errorMsg = match ($uploadError) {
+                UPLOAD_ERR_INI_SIZE   => "Ukuran file yang diunggah melebihi batas 'upload_max_filesize' di php.ini Apache ({$maxIni}). Harap perbesar konfigurasi upload_max_filesize di php.ini atau kompres gambar Anda.",
+                UPLOAD_ERR_FORM_SIZE  => "Ukuran file melebihi batas form MAX_FILE_SIZE.",
+                UPLOAD_ERR_PARTIAL    => "File hanya terunggah sebagian (koneksi terputus). Silakan coba lagi.",
+                UPLOAD_ERR_NO_FILE    => "Tidak ada file yang terunggah.",
+                UPLOAD_ERR_NO_TMP_DIR => "Server PHP kehilangan folder sementara (upload_tmp_dir tidak ditemukan/tidak writable).",
+                UPLOAD_ERR_CANT_WRITE => "Gagal menulis file ke hard disk server (permission denied pada folder temporary).",
+                default               => "Terjadi kesalahan upload pada PHP server (Kode Error: {$uploadError}).",
+            };
+            return response()->json([
+                'success' => false,
+                'message' => $errorMsg,
+            ], 422);
+        }
+
+        // 3. Normalisasi jika 'image' dikirim sebagai string (URL, Base64, atau string teks)
+        if (!$request->hasFile('image') && $request->has('image')) {
+            $rawImageVal = $request->input('image');
+            if (is_string($rawImageVal)) {
+                $trimmed = trim($rawImageVal);
+                
+                // 3a. String URL (http://... atau https://...)
+                if (filter_var($trimmed, FILTER_VALIDATE_URL)) {
+                    if (!$request->filled('media_url')) {
+                        $request->merge(['media_url' => $trimmed]);
+                    }
+                    $request->request->remove('image');
+                }
+                // 3b. String Base64 Image (data:image/...;base64,...)
+                elseif (preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/is', $trimmed, $b64Matches)) {
+                    $ext = strtolower($b64Matches[1] === 'jpeg' ? 'jpg' : $b64Matches[1]);
+                    $decodedData = base64_decode(preg_replace('/\s+/', '', $b64Matches[2]));
+                    if ($decodedData !== false && strlen($decodedData) > 0) {
+                        $filename = 'wa_' . time() . '_' . \Illuminate\Support\Str::random(24) . '.' . $ext;
+                        $destinationPath = public_path('uploads');
+                        if (!file_exists($destinationPath)) {
+                            mkdir($destinationPath, 0755, true);
+                        }
+                        file_put_contents($destinationPath . '/' . $filename, $decodedData);
+                        $request->merge(['media_url' => asset('uploads/' . $filename)]);
+                        $request->request->remove('image');
+                    }
+                }
+                // 3c. Placeholder kosong dari form-data
+                elseif ($trimmed === '' || $trimmed === 'null' || $trimmed === 'undefined') {
+                    $request->request->remove('image');
+                }
+                // 3d. Pengguna mengirim teks nama file (misal "gambar.png") tapi bukan binary file
+                else {
+                    $contentType = $request->header('Content-Type') ?? '';
+                    $diagHelp = "Server menerima parameter 'image' sebagai string teks (\"{$trimmed}\"), bukan binary file upload.";
+                    if (str_contains(strtolower($contentType), 'application/json')) {
+                        $diagHelp .= " Request terdeteksi menggunakan 'Content-Type: application/json'. Untuk mengunggah file fisik, gunakan tab 'form-data' di Postman (bukan raw JSON).";
+                    } else {
+                        $diagHelp .= " Pada Postman tab 'form-data', pastikan tipe field 'image' diubah dari [Text] menjadi [File] lalu klik tombol 'Select Files'. Jika di tab 'Headers' ada Content-Type yang dicentang manual, harap UNCHECK/hapus agar boundary terkirim otomatis.";
+                    }
+                    return response()->json([
+                        'success' => false,
+                        'message' => $diagHelp,
+                        'received_value' => $trimmed,
+                        'content_type_header' => $contentType,
+                    ], 422);
+                }
+            }
+        }
+
         $validated = $request->validate([
             'device_id'  => 'required|string|exists:devices,device_id',
             'to'         => 'required|string|max:20',
             'message'    => 'required|string|max:4096',
-            'media_url'  => 'nullable|string|url|max:2048',
-            'image'      => 'nullable|image|max:10240', // Maks 10MB
+            'media_url'  => [
+                'nullable', 'string', 'url', 'max:2048',
+                function ($attribute, $value, $fail) use ($request) {
+                    $parsed = parse_url($value);
+                    if (!$parsed || empty($parsed['host']) || !in_array(strtolower($parsed['scheme'] ?? ''), ['http', 'https'])) {
+                        $fail('URL media tidak valid (hanya protokol HTTP/HTTPS yang diizinkan).');
+                        return;
+                    }
+                    $host = strtolower($parsed['host']);
+                    $path = strtolower($parsed['path'] ?? '');
+
+                    // 1. Mutlak blokir Cloud Metadata Service (AWS/GCP/Azure/Kubernetes metadata)
+                    $cloudMetadata = ['169.254.169.254', 'metadata.google.internal', 'instance-data'];
+                    if (in_array($host, $cloudMetadata, true) || str_ends_with($host, '.internal')) {
+                        $fail('Akses ke cloud metadata service diblokir demi keamanan.');
+                        return;
+                    }
+
+                    // 2. Jika URL mengarah ke file statis /uploads/ pada server aplikasi ini sendiri (baik di localhost, IP lokal, atau domain resmi)
+                    $appHost = strtolower(parse_url(config('app.url'), PHP_URL_HOST) ?? '');
+                    $currentHost = strtolower($request->getHost());
+                    $isOwnServer = in_array($host, [$appHost, $currentHost, 'localhost', '127.0.0.1', '::1'], true);
+
+                    if (str_starts_with($path, '/uploads/')) {
+                        // File upload lokal yang sah -> Izinkan
+                        return;
+                    }
+
+                    // 3. Jika di environment production, blokir akses ke internal loopback selain /uploads/
+                    if (app()->environment('production')) {
+                        $blockedHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+                        if (in_array($host, $blockedHosts, true) && !$isOwnServer) {
+                            $fail('Alamat URL media tidak diizinkan di production (host privat internal).');
+                            return;
+                        }
+                        $resolvedIp = gethostbyname($host);
+                        if ($resolvedIp !== $host) {
+                            if (filter_var($resolvedIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false && !$isOwnServer) {
+                                $fail('Host media tidak boleh mengarah ke IP privat atau internal network.');
+                            }
+                        }
+                    }
+                }
+            ],
+            // Strict Mimes whitelist: Only JPG, PNG, WebP with bail to stop on first failure
+            'image'      => 'bail|nullable|file|mimes:jpeg,jpg,png,webp|max:10240',
             'min_delay'  => 'nullable|integer|min:500|max:10000',
             'max_delay'  => 'nullable|integer|min:1000|max:30000',
+        ], [
+            'image.file'    => 'Field "image" harus berupa file gambar fisik (JPG, JPEG, PNG, WebP) yang di-upload via multipart/form-data. Jika Anda ingin mengirimkan link URL gambar dari internet, gunakan field "media_url".',
+            'image.mimes'   => 'Format file gambar hanya boleh berupa JPG, JPEG, PNG, atau WebP.',
+            'image.max'     => 'Ukuran file gambar tidak boleh melebihi 10 MB (10.240 KB).',
+            'media_url.url' => 'Format media_url harus berupa URL HTTP/HTTPS yang valid.',
         ]);
 
         $user = $this->getUser($request);
@@ -88,11 +221,22 @@ class MessageController extends Controller
             $toPhone = '62' . $toPhone;
         }
 
-        // Handle uploaded image file if provided (Save directly into public/uploads)
+        // Handle uploaded image file securely
         $mediaUrl = $validated['media_url'] ?? null;
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $file = $request->file('image');
-            $filename = 'wa_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $file->getClientOriginalExtension();
+
+            // CR-03 Fix: Strictly use server-detected extension, never trust client-supplied extension
+            $safeExt = strtolower($file->guessExtension() ?: 'png');
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            if (!in_array($safeExt, $allowedExtensions, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format file gambar tidak diizinkan. Hanya file JPG, PNG, atau WebP yang diterima.',
+                ], 422);
+            }
+
+            $filename = 'wa_' . time() . '_' . \Illuminate\Support\Str::random(24) . '.' . $safeExt;
             $destinationPath = public_path('uploads');
             
             if (!file_exists($destinationPath)) {
@@ -102,7 +246,7 @@ class MessageController extends Controller
             $file->move($destinationPath, $filename);
             $mediaUrl = asset('uploads/' . $filename);
             
-            \Illuminate\Support\Facades\Log::info('[WA Message] Image saved to public/uploads', [
+            \Illuminate\Support\Facades\Log::info('[WA Message] Image saved securely to public/uploads', [
                 'filename' => $filename,
                 'url'      => $mediaUrl,
             ]);

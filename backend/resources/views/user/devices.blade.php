@@ -16,7 +16,7 @@
             </div>
             <p class="text-xs text-mono-400 mt-1">
                 Kapasitas Slot Perangkat: 
-                <span class="font-mono font-bold text-mono-100 tabular-nums">{{ $devicesCount }}</span> dari <span class="font-mono font-bold text-mono-100 tabular-nums">{{ $maxDevices }}</span> perangkat aktif
+                <span class="font-mono font-bold text-mono-100 tabular-nums">{{ count($devices) }}</span> dari <span class="font-mono font-bold text-mono-100 tabular-nums">{{ $maxDevices }}</span> perangkat terdaftar
             </p>
         </div>
 

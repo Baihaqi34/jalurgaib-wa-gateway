@@ -25,6 +25,7 @@ class UserDashboardController extends Controller
         $deviceIds = $user->devices()->pluck('id');
         $recentMessages = Message::whereIn('device_id', $deviceIds)->with('device')->latest()->take(5)->get();
         $devices = $user->devices()->latest()->take(4)->get();
+        $pendingOrder = $user->orders()->where('status', 'pending')->with('package')->latest()->first();
 
         return view('user.dashboard', compact(
             'user', 
@@ -35,7 +36,8 @@ class UserDashboardController extends Controller
             'maxDevices', 
             'devicesCount',
             'recentMessages',
-            'devices'
+            'devices',
+            'pendingOrder'
         ));
     }
 
@@ -137,7 +139,7 @@ class UserDashboardController extends Controller
             ->where('created_at', '<', now()->subMinutes($expiresInMinutes))
             ->update(['status' => 'expired']);
 
-        $recentOrders = $user->orders()->with('package')->latest()->take(10)->get();
+        $pendingOrder = $user->orders()->with('package')->where('status', 'pending')->latest()->first();
 
         return view('user.upgrade', compact(
             'user', 
@@ -147,7 +149,8 @@ class UserDashboardController extends Controller
             'dailyLimit', 
             'maxDevices', 
             'devicesCount',
-            'recentOrders'
+            'pendingOrder',
+            'expiresInMinutes'
         ));
     }
 

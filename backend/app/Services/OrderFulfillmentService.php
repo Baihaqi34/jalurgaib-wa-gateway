@@ -54,6 +54,8 @@ class OrderFulfillmentService
                         'paid_amount_received' => $paidAmount,
                     ]),
                 ]);
+
+                app(\App\Services\AuthenticationLogService::class)->logPaymentFailed($lockedOrder, 'Nominal pembayaran kurang dari nilai tagihan.');
                 return false;
             }
 
@@ -93,6 +95,9 @@ class OrderFulfillmentService
                     'new_expires_at'         => $newExpiresAt->toIso8601String(),
                 ]),
             ]);
+
+            // 3. Log Activity for Admin Audit Trail
+            app(\App\Services\AuthenticationLogService::class)->logPaymentSuccess($lockedOrder, $paidAmount, $paymentMethod);
 
             Log::info("Order #{$lockedOrder->order_no} successfully fulfilled. User {$user->email} upgraded to {$package->name} until {$newExpiresAt->toDateTimeString()}.");
 
