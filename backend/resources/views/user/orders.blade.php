@@ -215,15 +215,24 @@
                                 @endif
                             </td>
 
-                            <!-- Aksi (Satu Tombol: Jika ada waktu -> Bayar, jika expired -> Pesan Ulang) -->
+                            <!-- Aksi (Bayar / Batalkan jika pending, Pesan Ulang jika expired) -->
                             <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                 @if($isStillPending)
-                                    @if($ord->checkout_url)
-                                        <a href="{{ $ord->checkout_url }}" target="_blank" class="px-3 py-1.5 rounded-lg mono-btn-primary font-bold text-xs inline-flex items-center gap-1.5 shadow-sm" title="Buka tautan pembayaran Kasera Pay">
-                                            <span>Bayar</span>
-                                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                        </a>
-                                    @endif
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        @if($ord->checkout_url)
+                                            <a href="{{ $ord->checkout_url }}" target="_blank" class="px-3 py-1.5 rounded-lg mono-btn-primary font-bold text-xs inline-flex items-center gap-1.5 shadow-sm" title="Buka tautan pembayaran Kasera Pay">
+                                                <span>Bayar</span>
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                            </a>
+                                        @endif
+                                        <form id="cancel-order-form-{{ $ord->order_no }}" action="{{ route('user.checkout.cancel', $ord->order_no) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="button" onclick="confirmCancelOrder('{{ $ord->order_no }}')" class="px-2.5 py-1.5 rounded-lg bg-mono-850 hover:bg-red-500/10 text-mono-300 hover:text-red-400 border border-mono-700 hover:border-red-500/30 text-xs font-semibold transition inline-flex items-center gap-1" title="Batalkan Tagihan">
+                                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                                                <span>Batal</span>
+                                            </button>
+                                        </form>
+                                    </div>
                                 @elseif($ord->status === 'expired' || $isOverdue || in_array($ord->status, ['canceled', 'failed']))
                                     <a href="{{ route('user.upgrade') }}" class="px-3 py-1.5 rounded-lg bg-mono-800 hover:bg-mono-700 text-mono-200 hover:text-white text-xs font-bold border border-mono-700 transition inline-flex items-center gap-1.5 shadow-sm" title="Buat pesanan baru">
                                         <span>Pesan Ulang</span>

@@ -2363,15 +2363,15 @@ X-API-Key: JG_GAIB_YOUR_TENANT_API_KEY
               </div>
 
               <ul class="price-features">
-                @if(!empty($pkg->benefits) && is_array($pkg->benefits))
-                  @foreach($pkg->benefits as $benefit)
-                    <li>{{ $benefit }}</li>
-                  @endforeach
-                @else
-                  <li><strong>{{ $pkg->max_devices }} Device</strong> WhatsApp terhubung</li>
-                  <li><strong>{{ number_format($pkg->daily_message_limit, 0, ',', '.') }} Pesan / Hari</strong></li>
-                  <li>REST API Key Terisolasi</li>
-                @endif
+                @foreach($pkg->effective_benefits as $benefit)
+                  <li>
+                    @if(str_contains($benefit, 'Device') || str_contains($benefit, 'Pesan') || str_contains($benefit, 'Kuota'))
+                      <strong>{{ $benefit }}</strong>
+                    @else
+                      {{ $benefit }}
+                    @endif
+                  </li>
+                @endforeach
               </ul>
             </div>
 

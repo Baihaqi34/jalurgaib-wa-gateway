@@ -1,4 +1,4 @@
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-mono-900/95 backdrop-blur-2xl border-r border-mono-700/80 flex flex-col transition-transform duration-300 md:translate-x-0"
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-mono-900/95 backdrop-blur-2xl border-r border-mono-700/80 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0"
        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
     <!-- Sidebar Brand -->

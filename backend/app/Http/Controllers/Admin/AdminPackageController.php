@@ -66,8 +66,13 @@ class AdminPackageController extends Controller
             $counter++;
         }
 
-        // Convert newline separated benefits to array
-        $benefitsArray = $this->parseBenefits($validated['benefits'] ?? '');
+        // Ensure benefits capacity and cycle match package specifications
+        $benefitsArray = $this->syncOrBuildBenefits(
+            $validated['benefits'] ?? '',
+            (int) $validated['max_devices'],
+            (int) $validated['daily_message_limit'],
+            $validated['reset_cycle'] ?? 'daily'
+        );
 
         Package::create([
             'name'                => $validated['name'],
@@ -114,7 +119,13 @@ class AdminPackageController extends Controller
             }
         }
 
-        $benefitsArray = $this->parseBenefits($validated['benefits'] ?? '');
+        // Ensure benefits capacity and cycle match package specifications
+        $benefitsArray = $this->syncOrBuildBenefits(
+            $validated['benefits'] ?? '',
+            (int) $validated['max_devices'],
+            (int) $validated['daily_message_limit'],
+            $validated['reset_cycle'] ?? 'daily'
+        );
 
         $package->update([
             'name'                => $validated['name'],
@@ -156,6 +167,68 @@ class AdminPackageController extends Controller
 
         return redirect()->route('admin.packages.index')
             ->with('success', "Paket '{$packageName}' berhasil dihapus. Pengguna terkait telah dialihkan ke paket dasar.");
+    }
+
+    /**
+     * Parse benefits from textarea and ensure capacity lines match package specifications.
+     */
+    private function syncOrBuildBenefits(?string $raw, int $maxDevices, int $messageLimit, string $resetCycle): array
+    {
+        $cycleLabel = $resetCycle === 'monthly' ? 'Bulan' : 'Hari';
+        $resetTime  = $resetCycle === 'monthly' ? 'Awal Bulan' : '24 Jam';
+        $numFmt     = number_format($messageLimit, 0, ',', '.');
+
+        $deviceLine = "{$maxDevices} Device WhatsApp terhubung";
+        $limitLine  = "{$numFmt} Pesan WhatsApp / {$cycleLabel}";
+        $resetLine  = "Reset Kuota Setiap {$resetTime}";
+
+        $rawLines = $this->parseBenefits($raw);
+        if (empty($rawLines)) {
+            return [
+                $deviceLine,
+                $limitLine,
+                $resetLine,
+                'REST API Key Terisolasi & Webhook',
+                'Anti-Ban Human Delay & Antrean Cerdas',
+            ];
+        }
+
+        $deviceReplaced = false;
+        $limitReplaced  = false;
+        $resetReplaced  = false;
+        $updated = [];
+
+        foreach ($rawLines as $line) {
+            $lower = strtolower($line);
+            if (!$deviceReplaced && (str_contains($lower, 'device') || str_contains($lower, 'nomor') || str_contains($lower, 'perangkat'))) {
+                $updated[] = $deviceLine;
+                $deviceReplaced = true;
+                continue;
+            }
+            if (!$limitReplaced && (str_contains($lower, 'pesan') || str_contains($lower, 'msg') || str_contains($lower, 'kuota'))) {
+                $updated[] = $limitLine;
+                $limitReplaced = true;
+                continue;
+            }
+            if (!$resetReplaced && str_contains($lower, 'reset')) {
+                $updated[] = $resetLine;
+                $resetReplaced = true;
+                continue;
+            }
+            $updated[] = $line;
+        }
+
+        if (!$resetReplaced) {
+            $updated[] = $resetLine;
+        }
+        if (!$limitReplaced) {
+            array_unshift($updated, $limitLine);
+        }
+        if (!$deviceReplaced) {
+            array_unshift($updated, $deviceLine);
+        }
+
+        return array_values(array_unique($updated));
     }
 
     /**

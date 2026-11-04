@@ -10,455 +10,583 @@
 
     $activeDeviceObj = $user ? $user->devices()->first() : null;
     $userDeviceId = $activeDeviceObj ? $activeDeviceObj->device_id : 'dev_GadV4eCt8wJF';
+    $baseUrl = url('/api');
 @endphp
 
 @section('title', 'Dokumentasi REST API — JalurGaib WA Gateway')
-@section('header_title', 'Dokumentasi Integrasi REST API')
-@section('header_subtitle', 'Panduan integrasi lengkap untuk aplikasi Laravel, PHP, Node.js, Python & cURL')
 
 @section('content')
 <div class="space-y-8 w-full" x-data="docsApp()">
 
-    <!-- Overview Banner -->
-    <div class="mono-card p-5 sm:p-7 w-full">
-        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-mono-850 text-mono-300 border border-mono-700/80 shadow-sm">RESTful API v1.0</span>
-                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-mono-850 text-mono-300 border border-mono-700/80 shadow-sm">Anti-Ban Engine</span>
+    <!-- GLOBAL LANGUAGE BAR & QUICK BANNER -->
+    <div id="overview" data-doc-section class="mono-card p-5 sm:p-6 w-full scroll-mt-24 space-y-4">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-mono-800 text-mono-300 border border-mono-700">REST API v1.0</span>
+                    <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live Production</span>
                 </div>
-                <h2 class="text-2xl font-extrabold text-mono-50 tracking-tight">Integrasikan WhatsApp ke Aplikasi Anda</h2>
-                <p class="text-xs text-mono-400 max-w-3xl leading-relaxed font-medium">
-                    Kirimkan notifikasi pesanan, OTP, tagihan, ataupun broadcast dari backend aplikasi Anda (Laravel, Node.js, PHP, Python) menggunakan REST API JalurGaib WA Gateway dengan perlindungan antrean cerdas anti-banned.
-                </p>
-                @if($user && $activeKeyObj)
-                    <div class="inline-flex items-center gap-2 text-[11px] font-mono text-mono-200 bg-mono-900 border border-mono-700/80 px-3 py-1.5 rounded-xl mt-1 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>API Key akun Anda: <strong>{{ substr($userApiKey, 0, 12) }}...{{ substr($userApiKey, -6) }}</strong></span>
-                    </div>
-                @endif
+                <h1 class="text-xl sm:text-2xl font-extrabold text-mono-50 tracking-tight">Dokumentasi REST API JalurGaib</h1>
+                <p class="text-xs text-mono-400 mt-1">Integrasi WhatsApp Gateway aman & cepat dengan Anti-Ban Human Delay.</p>
             </div>
 
-            <!-- Base URL with Copy -->
-            <div class="p-5 bg-mono-950 rounded-2xl border border-mono-700 space-y-2 w-full lg:w-auto lg:min-w-[320px] shadow-sm">
-                <div class="flex items-center justify-between gap-4">
-                    <span class="text-mono-400 text-[10px] uppercase font-bold tracking-wider">Base API URL:</span>
-                    <button @click="copyText('{{ asset('/api') }}', 'base_url')" class="text-[11px] text-mono-300 hover:text-mono-50 font-bold flex items-center gap-1 transition">
-                        <span x-text="copiedKey === 'base_url' ? '✓ Tersalin' : '📋 Salin'"></span>
-                    </button>
+            <!-- Base URL Box -->
+            <div class="bg-mono-950 px-4 py-2.5 rounded-xl border border-mono-800 flex items-center justify-between gap-4 w-full sm:w-auto">
+                <div>
+                    <div class="text-[9px] font-mono uppercase text-mono-400 font-bold">Base URL</div>
+                    <code class="text-xs font-mono font-bold text-mono-100">{{ $baseUrl }}</code>
                 </div>
-                <div class="text-mono-50 font-mono font-bold text-xs select-all bg-mono-900 px-3.5 py-2.5 rounded-xl border border-mono-800 shadow-inner">
-                    {{ asset('/api') }}
-                </div>
+                <button @click="copyText('{{ $baseUrl }}', 'base_url')" class="text-xs text-mono-400 hover:text-white font-bold p-1">
+                    <span x-text="copiedKey === 'base_url' ? '✓ Tersalin' : '📋'"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Global Language Switcher -->
+        <div class="pt-3 border-t border-mono-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="text-xs text-mono-400 font-medium">
+                Pilih bahasa pemrograman default untuk semua contoh kode:
+            </div>
+            <div class="docs-tab-nav">
+                <button type="button" @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                <button type="button" @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel / PHP</button>
+                <button type="button" @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                <button type="button" @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
             </div>
         </div>
     </div>
 
     <!-- 1. AUTENTIKASI -->
-    <div class="mono-card p-5 sm:p-7 w-full space-y-4">
+    <div id="auth" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-3 scroll-mt-24">
         <div class="flex items-center justify-between flex-wrap gap-2">
-            <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
-                <span>🔑</span> 1. Autentikasi Header API Key
-            </h3>
-            <button @click="copyText('X-API-Key: {{ $userApiKey }}', 'auth_header')" class="px-3.5 py-1.5 mono-btn-secondary text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+            <h2 class="text-sm sm:text-base font-extrabold text-mono-50 flex items-center gap-2">
+                <span>🔑</span> Autentikasi Header API Key
+            </h2>
+            <button @click="copyText('X-API-Key: {{ $userApiKey }}', 'auth_header')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold">
                 <span x-text="copiedKey === 'auth_header' ? '✓ Tersalin!' : '📋 Salin Header'"></span>
             </button>
         </div>
-        <p class="text-xs text-mono-400 leading-relaxed font-medium">
-            Setiap request API ke endpoint privat wajib menyertakan header <code>X-API-Key</code> dengan token API Key aktif milik akun Anda (berformat <code>wag_...</code> yang digenerate di menu API Keys).
-        </p>
-
-        <!-- Syntax-highlighted Terminal Box -->
-        <div class="p-4 sm:p-5 code-terminal font-mono text-xs space-y-1.5 shadow-inner">
-            <div class="text-slate-500">// Header Wajib Setiap Request:</div>
+        <p class="text-xs text-mono-400">Sertakan header <code>X-API-Key</code> di setiap request ke endpoint privat.</p>
+        
+        <div class="p-3.5 code-terminal font-mono text-xs space-y-1">
             <div><span class="text-sky-400 font-semibold">Content-Type</span>: <span class="text-emerald-400">application/json</span></div>
             <div><span class="text-sky-400 font-semibold">Accept</span>: <span class="text-emerald-400">application/json</span></div>
             <div><span class="text-sky-400 font-semibold">X-API-Key</span>: <span class="text-amber-300 font-bold">{{ $userApiKey }}</span></div>
         </div>
     </div>
 
-    <!-- 2. KHUSUS APLIKASI LARAVEL (HTTP CLIENT INTEGRATION) -->
-    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center font-bold text-xl shadow-sm">
-                    <i class="fa-brands fa-laravel"></i>
+    <!-- 2. PANDUAN LARAVEL CLIENT -->
+    <div id="laravel" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-brands fa-laravel text-red-500 text-lg"></i>
+                <h2 class="text-sm sm:text-base font-extrabold text-mono-50">Integrasi Cepat Laravel HTTP Client</h2>
+            </div>
+            <span class="text-[10px] font-mono bg-red-500/10 text-red-400 px-2.5 py-0.5 rounded-full border border-red-500/20 font-bold">Laravel 9/10/11+</span>
+        </div>
+        <p class="text-xs text-mono-400">Cukup simpan konfigurasi di file <code>.env</code> & <code>config/services.php</code>:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-mono-400 font-mono text-[11px]">
+                    <span>.env</span>
+                    <button @click="copyElementText('code-env', 'c_env')" class="hover:text-white" x-text="copiedKey === 'c_env' ? '✓' : 'Salin'"></button>
                 </div>
-                <div>
-                    <h3 class="text-base font-extrabold text-mono-50">Panduan Integrasi Aplikasi Laravel</h3>
-                    <p class="text-xs text-mono-400">Menggunakan Laravel HTTP Client (Guzzle Wrapper) bawaan</p>
+                <div class="p-3 code-terminal"><pre id="code-env">WA_URL={{ $baseUrl }}
+WA_KEY={{ $userApiKey }}
+WA_DEVICE={{ $userDeviceId }}</pre></div>
+            </div>
+
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-mono-400 font-mono text-[11px]">
+                    <span>config/services.php</span>
+                    <button @click="copyElementText('code-srv', 'c_srv')" class="hover:text-white" x-text="copiedKey === 'c_srv' ? '✓' : 'Salin'"></button>
                 </div>
-            </div>
-            <span class="px-3.5 py-1 bg-mono-850 text-mono-300 border border-mono-700/80 rounded-full text-[10px] font-bold uppercase font-mono shadow-sm">Laravel 9 / 10 / 11+</span>
-        </div>
-
-        <!-- Langkah 1: .env config -->
-        <div class="space-y-3">
-            <div class="flex items-center justify-between">
-                <h4 class="text-xs font-bold text-mono-200 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-mono-850 border border-mono-700 flex items-center justify-center text-[10px] font-bold text-mono-100">1</span>
-                    Tambahkan ke file <code>.env</code> project Laravel Anda:
-                </h4>
-                <button @click="copyElementText('laravel-env-code', 'lar_env')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'lar_env' ? '✓ Tersalin!' : '📋 Salin .env'"></span>
-                </button>
-            </div>
-            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner">
-                <pre id="laravel-env-code">WA_GATEWAY_URL={{ asset('/api') }}
-WA_GATEWAY_API_KEY={{ $userApiKey }}
-WA_GATEWAY_DEVICE_ID={{ $userDeviceId }}</pre>
-            </div>
-        </div>
-
-        <!-- Langkah 2: config/services.php -->
-        <div class="space-y-3">
-            <div class="flex items-center justify-between">
-                <h4 class="text-xs font-bold text-mono-200 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-mono-850 border border-mono-700 flex items-center justify-center text-[10px] font-bold text-mono-100">2</span>
-                    Daftarkan di <code>config/services.php</code>:
-                </h4>
-                <button @click="copyElementText('laravel-config-code', 'lar_conf')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'lar_conf' ? '✓ Tersalin!' : '📋 Salin Config'"></span>
-                </button>
-            </div>
-            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner">
-                <pre id="laravel-config-code">'wa_gateway' => [
-    'url'       => env('WA_GATEWAY_URL', '{{ asset('/api') }}'),
-    'api_key'   => env('WA_GATEWAY_API_KEY', '{{ $userApiKey }}'),
-    'device_id' => env('WA_GATEWAY_DEVICE_ID', '{{ $userDeviceId }}'),
-],</pre>
-            </div>
-        </div>
-
-        <!-- Langkah 3: Controller / Service Class -->
-        <div class="space-y-3">
-            <div class="flex items-center justify-between">
-                <h4 class="text-xs font-bold text-mono-200 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-mono-850 border border-mono-700 flex items-center justify-center text-[10px] font-bold text-mono-100">3</span>
-                    Contoh Service / Controller Laravel untuk Kirim WhatsApp:
-                </h4>
-                <button @click="copyElementText('laravel-service-code', 'lar_code')" class="px-4 py-1.5 mono-btn-primary text-xs font-bold shadow-sm">
-                    <span x-text="copiedKey === 'lar_code' ? '✓ Tersalin!' : '📋 Salin Kode Laravel'"></span>
-                </button>
-            </div>
-            <div class="p-5 code-terminal text-xs overflow-x-auto shadow-inner">
-<pre id="laravel-service-code">&lt;?php
-
-namespace App\Services;
-
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-
-class WhatsAppNotificationService
-{
-    /**
-     * Kirim pesan teks WhatsApp melalui JalurGaib WA Gateway
-     */
-    public static function sendMessage(string $to, string $message, ?string $mediaUrl = null, ?string $deviceId = null): array
-    {
-        $url      = config('services.wa_gateway.url') . '/messages/send';
-        $apiKey   = config('services.wa_gateway.api_key', '{{ $userApiKey }}');
-        $deviceId = $deviceId ?? config('services.wa_gateway.device_id', '{{ $userDeviceId }}');
-
-        try {
-            $payload = [
-                'device_id' => $deviceId,
-                'to'        => $to,
-                'message'   => $message,
-                'min_delay' => 1000,
-                'max_delay' => 3000,
-            ];
-
-            if ($mediaUrl) {
-                $payload['media_url'] = $mediaUrl;
-            }
-
-            $response = Http::withHeaders([
-                'X-API-Key' => $apiKey,
-                'Accept'    => 'application/json',
-            ])->timeout(10)->post($url, $payload);
-
-            if ($response->successful()) {
-                return [
-                    'success'    => true,
-                    'message_id' => $response->json('data.message_id'),
-                ];
-            }
-
-            Log::error('[JalurGaib WA Gateway Error]', $response->json() ?? []);
-            return ['success' => false, 'error' => $response->json('message')];
-        } catch (\Exception $e) {
-            Log::error('[JalurGaib WA Gateway Exception] ' . $e->getMessage());
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-}</pre>
+                <div class="p-3 code-terminal"><pre id="code-srv">'wa' => [
+    'url'    => env('WA_URL'),
+    'key'    => env('WA_KEY'),
+    'device' => env('WA_DEVICE'),
+],</pre></div>
             </div>
         </div>
     </div>
 
-    <!-- 3. ENDPOINT: KIRIM PESAN -->
-    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
-        <div>
-            <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
-                <span>💬</span> 3. Endpoint Pengiriman Pesan
-            </h3>
-            <p class="text-xs text-mono-400 mt-1">Mengirim pesan teks ke WhatsApp secara tunggal atau broadcast massal.</p>
-        </div>
-
-        <!-- 3.1 Single Message -->
-        <div class="space-y-3 pt-2">
-            <div class="flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center gap-2.5">
-                    <span class="method-badge method-post">POST</span>
-                    <span class="text-xs font-mono font-bold text-mono-100">/api/messages/send</span>
-                </div>
-                <button @click="copyElementText('single-payload-code', 'single_payload')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'single_payload' ? '✓ Tersalin!' : '📋 Salin Payload JSON'"></span>
-                </button>
-            </div>
-            <p class="text-xs text-mono-400">Kirim 1 pesan teks ke satu nomor tujuan (Otomatis masuk ke antrean delivery queue).</p>
-
-            <div class="p-5 code-terminal text-xs shadow-inner">
-                <pre id="single-payload-code">{
-  "device_id": "{{ $userDeviceId }}",
-  "to": "6281234567890",
-  "message": "Halo! Pesan konfirmasi pesanan #1042 Anda telah diproses.",
-  "media_url": "https://example.com/invoice.jpg", // (Opsional) URL Foto langsung
-  "min_delay": 1000,
-  "max_delay": 3000
-}</pre>
-            </div>
-            <div class="docs-callout space-y-1">
-                <div class="font-bold text-mono-200">💡 Tips Kirim Foto/Media:</div>
-                <div>• Gunakan field <code>media_url</code> (berisi link gambar publik).</div>
-                <div>• Atau gunakan <code>multipart/form-data</code> dengan file upload pada key <code>image</code>.</div>
-                <div>• Teks pada field <code>message</code> akan otomatis menjadi caption foto.</div>
-            </div>
-        </div>
-
-        <!-- 3.2 Bulk Messages -->
-        <div class="space-y-3 pt-5 border-t border-mono-700/80">
-            <div class="flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center gap-2.5">
-                    <span class="method-badge method-post">POST</span>
-                    <span class="text-xs font-mono font-bold text-mono-100">/api/messages/send-bulk</span>
-                </div>
-                <button @click="copyElementText('bulk-payload-code', 'bulk_payload')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'bulk_payload' ? '✓ Tersalin!' : '📋 Salin Payload JSON'"></span>
-                </button>
-            </div>
-            <p class="text-xs text-mono-400">Kirim broadcast pesan ke banyak nomor sekaligus (Didistribusikan berkala dengan delay anti-ban).</p>
-
-            <div class="p-5 code-terminal text-xs shadow-inner">
-                <pre id="bulk-payload-code">{
-  "device_id": "{{ $userDeviceId }}",
-  "recipients": [
-    "6281234567890",
-    "085123456789",
-    "628987654321"
-  ],
-  "message": "Pengumuman: Layanan kami akan mengalami maintenance pada pukul 00:00 WIB.",
-  "media_url": "https://example.com/banner-promo.png", // (Opsional)
-  "min_delay": 2000,
-  "max_delay": 5000
-}</pre>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. ENDPOINT: KELOLA PERANGKAT -->
-    <div class="mono-card p-5 sm:p-7 w-full space-y-6">
-        <div>
-            <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
-                <span>📱</span> 4. Endpoint Manajemen Perangkat WhatsApp
-            </h3>
-            <p class="text-xs text-mono-400 mt-1">Daftarkan nomor baru, ambil QR Code pairing, dan pantau status koneksi.</p>
-        </div>
-
-        <!-- List Devices -->
-        <div class="space-y-2.5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <span class="method-badge method-get">GET</span>
-                    <span class="text-xs font-mono font-bold text-mono-100">/api/devices</span>
-                </div>
-                <button @click="copyText('GET {{ asset('/api/devices') }}', 'get_dev')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'get_dev' ? '✓ Tersalin!' : '📋 Salin Endpoint'"></span>
-                </button>
-            </div>
-            <p class="text-xs text-mono-400">Mendapatkan seluruh daftar perangkat WhatsApp terdaftar milik akun Anda beserta status koneksinya.</p>
-        </div>
-
-        <!-- Register Device -->
-        <div class="space-y-2.5 pt-4 border-t border-mono-700/80">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <span class="method-badge method-post">POST</span>
-                    <span class="text-xs font-mono font-bold text-mono-100">/api/devices</span>
-                </div>
-                <button @click="copyElementText('reg-device-code', 'reg_dev')" class="px-3 py-1 mono-btn-secondary text-[11px] font-bold shadow-sm">
-                    <span x-text="copiedKey === 'reg_dev' ? '✓ Tersalin!' : '📋 Salin Payload'"></span>
-                </button>
-            </div>
-            <p class="text-xs text-mono-400">Mendaftarkan perangkat/nomor WhatsApp baru ke akun Anda.</p>
-            <div class="p-4 code-terminal text-xs shadow-inner">
-                <pre id="reg-device-code">{
-  "name": "CS Support Utama",
-  "phone_number": "628123456789"
-}</pre>
-            </div>
-        </div>
-
-        <!-- Connect Device -->
-        <div class="space-y-2.5 pt-4 border-t border-mono-700/80">
+    <!-- 3. KIRIM PESAN TUNGGAL -->
+    <div id="send-message" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <!-- Header -->
+        <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2.5">
                 <span class="method-badge method-post">POST</span>
-                <span class="text-xs font-mono font-bold text-mono-100">/api/devices/{device_id}/connect</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/messages/send</span>
             </div>
-            <p class="text-xs text-mono-400">Menghasilkan string QR Code WhatsApp untuk di-scan oleh aplikasi WhatsApp HP.</p>
+            <span class="text-[11px] font-mono text-mono-400">Kirim 1 Pesan Teks / Gambar</span>
         </div>
-    </div>
+        <p class="text-xs text-mono-400">Memasukkan pesan tunggal ke antrean pengiriman dengan delay proteksi WhatsApp.</p>
 
-    <!-- 5. CONTOH KODE MULTI-BAHASA SDK -->
-    <div class="mono-card p-5 sm:p-7 w-full space-y-5">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-            <h3 class="text-base font-extrabold text-mono-50 flex items-center gap-2">
-                <span>💻</span> 5. Contoh Kode Multi-Bahasa
-            </h3>
-            
-            <!-- Language Selector Tabs (Responsive & Touch-Friendly) -->
-            <div class="docs-tab-nav">
-                <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
-                <button @click="selectedLang = 'js'" :class="selectedLang === 'js' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
-                <button @click="selectedLang = 'php'" :class="selectedLang === 'php' ? 'docs-tab-btn active' : 'docs-tab-btn'">PHP</button>
-                <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+        <!-- Multi-Language Code Tabs -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel / PHP</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-send-single')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
             </div>
-        </div>
 
-        <!-- cURL -->
-        <div x-show="selectedLang === 'curl'" class="space-y-2">
-            <div class="flex justify-end">
-                <button @click="copyElementText('curl-code-block', 'curl_code')" class="px-3 py-1 mono-btn-secondary text-xs font-bold shadow-sm">
-                    <span x-text="copiedKey === 'curl_code' ? '✓ Tersalin!' : '📋 Salin cURL'"></span>
-                </button>
-            </div>
-            <div class="p-5 code-terminal text-xs overflow-x-auto shadow-inner">
-                <pre id="curl-code-block">curl -X POST "{{ asset('/api/messages/send') }}" \
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-send-single">
+                <!-- cURL -->
+                <pre x-show="selectedLang === 'curl'">curl -X POST "{{ $baseUrl }}/messages/send" \
   -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
   -H "X-API-Key: {{ $userApiKey }}" \
   -d '{
     "device_id": "{{ $userDeviceId }}",
     "to": "6281234567890",
-    "message": "Halo! Pesan ini dikirim melalui JalurGaib WA Gateway.",
-    "min_delay": 1000,
-    "max_delay": 3000
+    "message": "Halo! Pesanan #1042 Anda telah diproses.",
+    "media_url": "https://example.com/invoice.jpg"
   }'</pre>
-            </div>
-        </div>
 
-        <!-- Node.js / JS -->
-        <div x-show="selectedLang === 'js'" class="space-y-2">
-            <div class="flex justify-end">
-                <button @click="copyElementText('node-code-block', 'node_code')" class="px-3 py-1 mono-btn-secondary text-xs font-bold shadow-sm">
-                    <span x-text="copiedKey === 'node_code' ? '✓ Tersalin!' : '📋 Salin Node.js'"></span>
-                </button>
-            </div>
-            <div class="p-5 code-terminal text-xs overflow-x-auto shadow-inner">
-                <pre id="node-code-block">const axios = require('axios');
+                <!-- Laravel -->
+                <pre x-show="selectedLang === 'laravel'">use Illuminate\Support\Facades\Http;
 
-async function sendWhatsAppMessage() {
-    try {
-        const response = await axios.post('{{ asset('/api/messages/send') }}', {
-            device_id: '{{ $userDeviceId }}',
-            to: '6281234567890',
-            message: 'Halo! Pesan dari Node.js Backend via JalurGaib WA Gateway.',
-            min_delay: 1000,
-            max_delay: 3000
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': '{{ $userApiKey }}'
-            }
-        });
-
-        console.log('Success:', response.data);
-    } catch (error) {
-        console.error('Error:', error.response?.data || error.message);
-    }
-}
-
-sendWhatsAppMessage();</pre>
-            </div>
-        </div>
-
-        <!-- PHP Native -->
-        <div x-show="selectedLang === 'php'" class="space-y-2">
-            <div class="flex justify-end">
-                <button @click="copyElementText('php-code-block', 'php_code')" class="px-3 py-1 mono-btn-secondary text-xs font-bold shadow-sm">
-                    <span x-text="copiedKey === 'php_code' ? '✓ Tersalin!' : '📋 Salin PHP'"></span>
-                </button>
-            </div>
-            <div class="p-5 code-terminal text-xs overflow-x-auto shadow-inner">
-<pre id="php-code-block">&lt;?php
-
-$payload = [
+$res = Http::withHeaders([
+    'X-API-Key' => config('services.wa.key', '{{ $userApiKey }}'),
+])->post('{{ $baseUrl }}/messages/send', [
     'device_id' => '{{ $userDeviceId }}',
     'to'        => '6281234567890',
-    'message'   => 'Halo! Pesan dari sistem PHP via JalurGaib WA Gateway.',
-    'min_delay' => 1000,
-    'max_delay' => 3000
-];
-
-$ch = curl_init('{{ asset('/api/messages/send') }}');
-curl_setopt_array($ch, [
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => json_encode($payload),
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER     => [
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'X-API-Key: {{ $userApiKey }}'
-    ]
+    'message'   => 'Halo! Pesanan #1042 Anda telah diproses.',
+    'media_url' => 'https://example.com/invoice.jpg', // Opsional
 ]);
 
-$response = curl_exec($ch);
-curl_close($ch);
+$data = $res->json();</pre>
 
-echo $response;</pre>
+                <!-- Node.js -->
+                <pre x-show="selectedLang === 'node'">const axios = require('axios');
+
+const res = await axios.post('{{ $baseUrl }}/messages/send', {
+  device_id: '{{ $userDeviceId }}',
+  to: '6281234567890',
+  message: 'Halo! Pesanan #1042 Anda telah diproses.',
+  media_url: 'https://example.com/invoice.jpg'
+}, {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+
+                <!-- Python -->
+                <pre x-show="selectedLang === 'python'">import requests
+
+res = requests.post(
+    "{{ $baseUrl }}/messages/send",
+    headers={"X-API-Key": "{{ $userApiKey }}"},
+    json={
+        "device_id": "{{ $userDeviceId }}",
+        "to": "6281234567890",
+        "message": "Halo! Pesanan #1042 Anda telah diproses."
+    }
+)</pre>
             </div>
         </div>
 
-        <!-- Python -->
-        <div x-show="selectedLang === 'python'" class="space-y-2">
-            <div class="flex justify-end">
-                <button @click="copyElementText('python-code-block', 'py_code')" class="px-3 py-1 mono-btn-secondary text-xs font-bold shadow-sm">
-                    <span x-text="copiedKey === 'py_code' ? '✓ Tersalin!' : '📋 Salin Python'"></span>
-                </button>
-            </div>
-            <div class="p-5 code-terminal text-xs overflow-x-auto shadow-inner">
-                <pre id="python-code-block">import requests
+        <!-- Sample Response -->
+        <div class="text-[11px] space-y-1">
+            <span class="font-mono text-mono-400 font-bold uppercase text-[10px]">Contoh Response (200 OK):</span>
+            <div class="p-3 code-terminal text-xs"><pre>{ "success": true, "message": "Pesan berhasil dijadwalkan", "data": { "message_id": 4821, "status": "pending" } }</pre></div>
+        </div>
+    </div>
 
-url = "{{ asset('/api/messages/send') }}"
-headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "X-API-Key": "{{ $userApiKey }}"
-}
-payload = {
+    <!-- 4. KIRIM PESAN BULK -->
+    <div id="send-bulk" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-post">POST</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/messages/send-bulk</span>
+            </div>
+            <span class="text-[11px] font-mono text-mono-400">Broadcast Banyak Nomor Sekaligus</span>
+        </div>
+        <p class="text-xs text-mono-400">Kirim pesan yang sama ke daftar array nomor penerima secara bertahap.</p>
+
+        <!-- Multi-Language Code Tabs -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel / PHP</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-send-bulk')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-send-bulk">
+                <!-- cURL -->
+                <pre x-show="selectedLang === 'curl'">curl -X POST "{{ $baseUrl }}/messages/send-bulk" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: {{ $userApiKey }}" \
+  -d '{
     "device_id": "{{ $userDeviceId }}",
-    "to": "6281234567890",
-    "message": "Halo! Pesan dari aplikasi Python via JalurGaib WA Gateway.",
-    "min_delay": 1000,
-    "max_delay": 3000
-}
+    "recipients": ["6281234567890", "085123456789"],
+    "message": "Pengumuman: Promo diskon 20% berlaku hari ini!",
+    "min_delay": 2000,
+    "max_delay": 5000
+  }'</pre>
 
-response = requests.post(url, json=payload, headers=headers)
-print(response.json())</pre>
+                <!-- Laravel -->
+                <pre x-show="selectedLang === 'laravel'">$res = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->post('{{ $baseUrl }}/messages/send-bulk', [
+        'device_id'  => '{{ $userDeviceId }}',
+        'recipients' => ['6281234567890', '628987654321'],
+        'message'    => 'Pengumuman: Promo diskon 20% berlaku hari ini!',
+    ]);</pre>
+
+                <!-- Node.js -->
+                <pre x-show="selectedLang === 'node'">const res = await axios.post('{{ $baseUrl }}/messages/send-bulk', {
+  device_id: '{{ $userDeviceId }}',
+  recipients: ['6281234567890', '628987654321'],
+  message: 'Pengumuman: Promo diskon 20% berlaku hari ini!'
+}, {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+
+                <!-- Python -->
+                <pre x-show="selectedLang === 'python'">res = requests.post(
+    "{{ $baseUrl }}/messages/send-bulk",
+    headers={"X-API-Key": "{{ $userApiKey }}"},
+    json={
+        "device_id": "{{ $userDeviceId }}",
+        "recipients": ["6281234567890", "628987654321"],
+        "message": "Pengumuman: Promo diskon 20% berlaku hari ini!"
+    }
+)</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. DAFTAR PERANGKAT -->
+    <div id="devices-list" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-get">GET</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices</span>
+            </div>
+            <span class="text-[11px] font-mono text-mono-400">Ambil Semua Perangkat & Status Live</span>
+        </div>
+        <p class="text-xs text-mono-400">Mendapatkan seluruh daftar nomor WhatsApp milik Anda beserta status sinkronisasi live.</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-list')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-list">
+                <pre x-show="selectedLang === 'curl'">curl -X GET "{{ $baseUrl }}/devices" \
+  -H "X-API-Key: {{ $userApiKey }}"</pre>
+                <pre x-show="selectedLang === 'laravel'">$devices = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->get('{{ $baseUrl }}/devices')
+    ->json('data');</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.get('{{ $baseUrl }}/devices', {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.get("{{ $baseUrl }}/devices", headers={"X-API-Key": "{{ $userApiKey }}"})</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. TAMBAH PERANGKAT BARU -->
+    <div id="devices-create" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-post">POST</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices</span>
+            </div>
+            <span class="text-[11px] font-mono text-mono-400">Daftarkan Nomor Baru</span>
+        </div>
+        <p class="text-xs text-mono-400">Mendaftarkan slot perangkat baru di akun Anda (dibatasi kuota paket aktif).</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-create')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-create">
+                <pre x-show="selectedLang === 'curl'">curl -X POST "{{ $baseUrl }}/devices" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: {{ $userApiKey }}" \
+  -d '{ "name": "CS Support Shift Pagi", "phone_number": "081234567890" }'</pre>
+                <pre x-show="selectedLang === 'laravel'">$res = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->post('{{ $baseUrl }}/devices', [
+        'name'         => 'CS Support Shift Pagi',
+        'phone_number' => '081234567890',
+    ]);</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.post('{{ $baseUrl }}/devices', {
+  name: 'CS Support Shift Pagi',
+  phone_number: '081234567890'
+}, { headers: { 'X-API-Key': '{{ $userApiKey }}' } });</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.post(
+    "{{ $baseUrl }}/devices",
+    headers={"X-API-Key": "{{ $userApiKey }}"},
+    json={"name": "CS Support Shift Pagi", "phone_number": "081234567890"}
+)</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. SCAN QR CODE VIA API -->
+    <div id="devices-scan" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-get">GET</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices/{id}/scan</span>
+            </div>
+            <span class="text-[11px] font-mono text-emerald-400 font-bold">QR JSON & Base64 SVG</span>
+        </div>
+        <p class="text-xs text-mono-400">Mengambil kode QR pairing WhatsApp aktif dalam format string dan Base64 Data URI siap pakai di tag <code>&lt;img&gt;</code>.</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-scan')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-scan">
+                <pre x-show="selectedLang === 'curl'">curl -X GET "{{ $baseUrl }}/devices/{{ $userDeviceId }}/scan" \
+  -H "X-API-Key: {{ $userApiKey }}"</pre>
+                <pre x-show="selectedLang === 'laravel'">$qr = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->get("{{ $baseUrl }}/devices/{{ $userDeviceId }}/scan")
+    ->json('qr_base64'); // Gunakan langsung di &lt;img src="..."&gt;</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.get('{{ $baseUrl }}/devices/{{ $userDeviceId }}/scan', {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});
+const qrSvg = res.data.qr_base64;</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.get("{{ $baseUrl }}/devices/{{ $userDeviceId }}/scan", headers={"X-API-Key": "{{ $userApiKey }}"})
+qr_base64 = res.json().get('qr_base64')</pre>
             </div>
         </div>
 
+        <div class="text-[11px] text-mono-400 bg-mono-950 p-3 rounded-xl border border-mono-800">
+            💡 <strong>Direct SVG Stream:</strong> Panggil endpoint <code>GET {{ $baseUrl }}/devices/{id}/qr</code> untuk langsung menghasilkan raw image SVG.
+        </div>
+    </div>
+
+    <!-- 8. CEK STATUS LIVE KONEKSI -->
+    <div id="devices-status" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-get">GET</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices/{id}/status</span>
+            </div>
+            <span class="text-[11px] font-mono text-sky-400 font-bold">Live Whatsmeow Status</span>
+        </div>
+        <p class="text-xs text-mono-400">Cek status koneksi real-time (<code>connected</code>, <code>scan_qr</code>, atau <code>disconnected</code>).</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-status')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-status">
+                <pre x-show="selectedLang === 'curl'">curl -X GET "{{ $baseUrl }}/devices/{{ $userDeviceId }}/status" \
+  -H "X-API-Key: {{ $userApiKey }}"</pre>
+                <pre x-show="selectedLang === 'laravel'">$status = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->get("{{ $baseUrl }}/devices/{{ $userDeviceId }}/status")
+    ->json('status'); // 'connected' | 'disconnected' | 'scan_qr'</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.get('{{ $baseUrl }}/devices/{{ $userDeviceId }}/status', {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.get("{{ $baseUrl }}/devices/{{ $userDeviceId }}/status", headers={"X-API-Key": "{{ $userApiKey }}"})</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. DETAIL PERANGKAT -->
+    <div id="devices-detail" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-get">GET</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices/{id}</span>
+            </div>
+            <span class="text-[11px] font-mono text-mono-400">Detail Spesifik Perangkat</span>
+        </div>
+        <p class="text-xs text-mono-400">Mendapatkan data status live dan informasi detail 1 nomor WhatsApp berdasarkan ID numerik atau string <code>device_id</code>.</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-show')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-show">
+                <pre x-show="selectedLang === 'curl'">curl -X GET "{{ $baseUrl }}/devices/{{ $userDeviceId }}" \
+  -H "X-API-Key: {{ $userApiKey }}"</pre>
+                <pre x-show="selectedLang === 'laravel'">$res = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->get('{{ $baseUrl }}/devices/{{ $userDeviceId }}');
+$device = $res->json('data');</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.get('{{ $baseUrl }}/devices/{{ $userDeviceId }}', {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.get("{{ $baseUrl }}/devices/{{ $userDeviceId }}", headers={"X-API-Key": "{{ $userApiKey }}"})</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. EDIT / UPDATE PERANGKAT -->
+    <div id="devices-update" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-put">PUT</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices/{id}</span>
+            </div>
+            <span class="text-[11px] font-mono text-mono-400">Update Nama / Label</span>
+        </div>
+        <p class="text-xs text-mono-400">Memperbarui nama label atau metadata perangkat tanpa memutus koneksi WhatsApp yang sedang berjalan.</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-update')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-update">
+                <pre x-show="selectedLang === 'curl'">curl -X PUT "{{ $baseUrl }}/devices/{{ $userDeviceId }}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: {{ $userApiKey }}" \
+  -d '{ "name": "CS Support Shift Siang" }'</pre>
+                <pre x-show="selectedLang === 'laravel'">$res = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->put('{{ $baseUrl }}/devices/{{ $userDeviceId }}', [
+        'name' => 'CS Support Shift Siang',
+    ]);</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.put('{{ $baseUrl }}/devices/{{ $userDeviceId }}', {
+  name: 'CS Support Shift Siang'
+}, { headers: { 'X-API-Key': '{{ $userApiKey }}' } });</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.put(
+    "{{ $baseUrl }}/devices/{{ $userDeviceId }}",
+    headers={"X-API-Key": "{{ $userApiKey }}"},
+    json={"name": "CS Support Shift Siang"}
+)</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. HAPUS PERANGKAT -->
+    <div id="devices-delete" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+                <span class="method-badge method-delete">DEL</span>
+                <span class="text-xs sm:text-sm font-mono font-bold text-mono-100">/api/devices/{id}</span>
+            </div>
+            <span class="text-[11px] font-mono text-rose-400">Disconnect & Hapus Slot</span>
+        </div>
+        <p class="text-xs text-mono-400">Menghapus perangkat dari database akun Anda dan otomatis memutus sesi aktif WhatsApp di engine.</p>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="docs-tab-nav">
+                    <button @click="selectedLang = 'curl'" :class="selectedLang === 'curl' ? 'docs-tab-btn active' : 'docs-tab-btn'">cURL</button>
+                    <button @click="selectedLang = 'laravel'" :class="selectedLang === 'laravel' ? 'docs-tab-btn active' : 'docs-tab-btn'">Laravel</button>
+                    <button @click="selectedLang = 'node'" :class="selectedLang === 'node' ? 'docs-tab-btn active' : 'docs-tab-btn'">Node.js</button>
+                    <button @click="selectedLang = 'python'" :class="selectedLang === 'python' ? 'docs-tab-btn active' : 'docs-tab-btn'">Python</button>
+                </div>
+                <button @click="copyActiveSnippet('code-dev-delete')" class="text-xs text-mono-400 hover:text-white font-bold">📋 Salin</button>
+            </div>
+
+            <div class="p-4 code-terminal text-xs overflow-x-auto shadow-inner" id="code-dev-delete">
+                <pre x-show="selectedLang === 'curl'">curl -X DELETE "{{ $baseUrl }}/devices/{{ $userDeviceId }}" \
+  -H "X-API-Key: {{ $userApiKey }}"</pre>
+                <pre x-show="selectedLang === 'laravel'">$res = Http::withHeaders(['X-API-Key' => '{{ $userApiKey }}'])
+    ->delete('{{ $baseUrl }}/devices/{{ $userDeviceId }}');</pre>
+                <pre x-show="selectedLang === 'node'">const res = await axios.delete('{{ $baseUrl }}/devices/{{ $userDeviceId }}', {
+  headers: { 'X-API-Key': '{{ $userApiKey }}' }
+});</pre>
+                <pre x-show="selectedLang === 'python'">res = requests.delete("{{ $baseUrl }}/devices/{{ $userDeviceId }}", headers={"X-API-Key": "{{ $userApiKey }}"})</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. HTTP STATUS CODES -->
+    <div id="error-codes" data-doc-section class="mono-card p-5 sm:p-6 w-full space-y-4 scroll-mt-24">
+        <div>
+            <h2 class="text-sm sm:text-base font-extrabold text-mono-50 flex items-center gap-2">
+                <span>⚠️</span> Standar HTTP Status & Error
+            </h2>
+            <p class="text-xs text-mono-400 mt-0.5">Format response konsisten dengan field <code>success</code>, <code>message</code>, dan <code>data</code>.</p>
+        </div>
+
+        <div class="overflow-x-auto border border-mono-800 rounded-xl">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-mono-950 text-mono-400 font-mono text-[10px] uppercase border-b border-mono-800">
+                    <tr>
+                        <th class="py-2.5 px-3.5">Status</th>
+                        <th class="py-2.5 px-3.5">Keterangan</th>
+                        <th class="py-2.5 px-3.5">Solusi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-mono-800/60 font-medium text-mono-300 text-[11px]">
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-emerald-400">200 / 201</td>
+                        <td class="py-2 px-3.5">Sukses diproses</td>
+                        <td class="py-2 px-3.5 text-mono-400">Ambil data dari <code>data</code>.</td>
+                    </tr>
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-amber-400">401 Unauthorized</td>
+                        <td class="py-2 px-3.5">API Key salah / tidak aktif</td>
+                        <td class="py-2 px-3.5 text-mono-400">Periksa header <code>X-API-Key</code>.</td>
+                    </tr>
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-amber-400">404 Not Found</td>
+                        <td class="py-2 px-3.5">Perangkat tidak ditemukan</td>
+                        <td class="py-2 px-3.5 text-mono-400">Pastikan <code>device_id</code> terdaftar.</td>
+                    </tr>
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-rose-400">422 Unprocessable</td>
+                        <td class="py-2 px-3.5">Validasi gagal (nomor invalid)</td>
+                        <td class="py-2 px-3.5 text-mono-400">Format nomor internasional (628...).</td>
+                    </tr>
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-rose-400">429 Too Many Requests</td>
+                        <td class="py-2 px-3.5">Kuota pesan habis</td>
+                        <td class="py-2 px-3.5 text-mono-400">Upgrade paket langganan.</td>
+                    </tr>
+                    <tr class="hover:bg-mono-900/40">
+                        <td class="py-2 px-3.5 font-mono font-bold text-red-500">503 Unavailable</td>
+                        <td class="py-2 px-3.5">Engine WhatsApp offline</td>
+                        <td class="py-2 px-3.5 text-mono-400">Scan QR ulang perangkat Anda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
@@ -482,7 +610,22 @@ print(response.json())</pre>
                 const el = document.getElementById(elementId);
                 if (el) {
                     const text = el.innerText || el.textContent;
-                    this.copyText(text, key);
+                    this.copyText(text.trim(), key);
+                }
+            },
+
+            copyActiveSnippet(containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const preElements = container.querySelectorAll('pre');
+                let activeText = '';
+                preElements.forEach(pre => {
+                    if (pre.offsetParent !== null || pre.style.display !== 'none') {
+                        activeText = pre.innerText || pre.textContent;
+                    }
+                });
+                if (activeText) {
+                    this.copyText(activeText.trim(), containerId);
                 }
             }
         }

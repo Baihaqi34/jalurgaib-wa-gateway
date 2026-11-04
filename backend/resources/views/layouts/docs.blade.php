@@ -222,6 +222,26 @@
             color: #0284c7;
             border: 1px solid #bae6fd;
         }
+        html.dark .method-put {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        html.light .method-put {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        html.dark .method-delete {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        html.light .method-delete {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
 
         /* Language Tab Switcher */
         .docs-tab-nav {
@@ -427,6 +447,48 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         html.dark ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+        [x-cloak] { display: none !important; }
+        html { scroll-behavior: smooth; }
+
+        /* Docs Sidebar Navigation */
+        .docs-sidebar-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #a1a1aa;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+        }
+        .docs-sidebar-link:hover {
+            color: #fafafa;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .docs-sidebar-link.active {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            background-color: #18181b !important;
+            border-left-color: #fafafa !important;
+        }
+        html.light .docs-sidebar-link {
+            color: #475569;
+        }
+        html.light .docs-sidebar-link:hover {
+            color: #0f172a;
+            background-color: #f1f5f9;
+        }
+        html.light .docs-sidebar-link.active {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            background-color: #f1f5f9 !important;
+            border-left-color: #0f172a !important;
+        }
+
         html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 
@@ -443,14 +505,42 @@
                 localStorage.setItem('theme', 'dark');
             }
         };
+
+        function docsLayoutApp() {
+            return {
+                mobileDocsMenu: false,
+                activeSection: 'overview',
+                init() {
+                    const sections = document.querySelectorAll('[data-doc-section]');
+                    if (!sections.length) return;
+
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                this.activeSection = entry.target.getAttribute('id');
+                            }
+                        });
+                    }, { rootMargin: '-20% 0px -70% 0px' });
+
+                    sections.forEach(sec => observer.observe(sec));
+                }
+            }
+        }
     </script>
 </head>
-<body class="min-h-screen font-sans flex flex-col antialiased selection:bg-mono-100 selection:text-mono-950 relative overflow-x-hidden">
+<body class="min-h-screen font-sans flex flex-col antialiased selection:bg-mono-100 selection:text-mono-950 relative overflow-x-hidden" x-data="docsLayoutApp()">
 
     <!-- Top Navigation Bar for Documentation -->
     <header class="h-16 px-4 sm:px-8 border-b border-mono-700/80 bg-mono-900/90 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between transition-colors">
-        <!-- Left: Logo & Docs Title -->
-        <div class="flex items-center gap-3.5">
+        <!-- Left: Hamburger for Mobile + Logo & Docs Title -->
+        <div class="flex items-center gap-3">
+            <button type="button" 
+                    @click="mobileDocsMenu = true" 
+                    class="lg:hidden w-9 h-9 rounded-xl bg-mono-850 hover:bg-mono-800 border border-mono-700/80 text-mono-300 flex items-center justify-center transition shadow-sm" 
+                    title="Buka Daftar Isi Dokumentasi">
+                <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+
             <a href="{{ route('docs') }}" class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-mono-950 border border-mono-700 flex items-center justify-center p-1.5 shadow-sm transition-colors">
                     <img src="{{ asset('images/logo.png') }}" alt="JalurGaib Logo" class="jalurgaib-logo w-full h-full object-contain">
@@ -466,7 +556,7 @@
         </div>
 
         <!-- Right: Actions -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
             <!-- Theme Switcher Button -->
             <button type="button" 
                     onclick="toggleTheme()" 
@@ -479,13 +569,14 @@
             <!-- Dashboard / Login CTA -->
             @if(auth()->check())
                 <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}" 
-                   class="px-4 py-2 rounded-xl bg-mono-850 hover:bg-mono-800 border border-mono-700 text-mono-200 hover:text-white text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
+                   class="px-3.5 py-2 rounded-xl bg-mono-850 hover:bg-mono-800 border border-mono-700 text-mono-200 hover:text-white text-xs font-bold transition inline-flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-arrow-left text-xs"></i>
-                    <span>Kembali ke Dashboard</span>
+                    <span class="hidden sm:inline">Kembali ke Dashboard</span>
+                    <span class="sm:hidden">Dashboard</span>
                 </a>
             @else
                 <a href="{{ route('login') }}" 
-                   class="px-4 py-2 rounded-xl mono-btn-primary font-bold text-xs inline-flex items-center gap-1.5 shadow-sm">
+                   class="px-3.5 py-2 rounded-xl mono-btn-primary font-bold text-xs inline-flex items-center gap-1.5 shadow-sm">
                     <span>Masuk ke Dashboard</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
@@ -493,14 +584,41 @@
         </div>
     </header>
 
-    <!-- Main Docs Content Area (Clean Centered Canvas) -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        @yield('content')
-    </main>
+    <!-- Mobile Drawer Sidebar (collapsible modal) -->
+    <div x-show="mobileDocsMenu" class="fixed inset-0 z-50 lg:hidden" x-cloak>
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="mobileDocsMenu = false"></div>
+        <div class="fixed inset-y-0 left-0 max-w-xs w-full bg-mono-900 border-r border-mono-700 p-5 overflow-y-auto flex flex-col justify-between shadow-2xl">
+            <div class="space-y-5">
+                <div class="flex items-center justify-between pb-3 border-b border-mono-800">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-extrabold uppercase font-mono tracking-wider text-mono-200">Daftar Isi Dokumentasi</span>
+                    </div>
+                    <button type="button" @click="mobileDocsMenu = false" class="w-8 h-8 rounded-xl bg-mono-850 text-mono-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+                @include('layouts.docs-sidebar')
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container: 2-Column Responsive Layout -->
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-8 items-start relative">
+        
+        <!-- Desktop Sticky Left Sidebar -->
+        <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-thin pr-2">
+            @include('layouts.docs-sidebar')
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 min-w-0">
+            @yield('content')
+        </main>
+    </div>
 
     <!-- Clean Docs Footer -->
     <footer class="border-t border-mono-700/60 py-6 px-4 sm:px-6 text-center text-xs font-medium transition-colors">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
                 JalurGaib WA Gateway &copy; {{ date('Y') }} &bull; High-Performance WhatsApp Architecture
             </div>
@@ -509,7 +627,7 @@
                 <span>&bull;</span>
                 <span>Anti-Ban Engine</span>
                 <span>&bull;</span>
-                <a href="#top" class="hover:underline transition">Ke Atas &uarr;</a>
+                <a href="#overview" class="hover:underline transition">Ke Atas &uarr;</a>
             </div>
         </div>
     </footer>

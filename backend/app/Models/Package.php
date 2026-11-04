@@ -80,6 +80,45 @@ class Package extends Model
     }
 
     /**
+     * Generate default dynamic benefits list tailored to package capacity & cycle.
+     */
+    public function generateDefaultBenefits(): array
+    {
+        $cycleLabel = $this->isMonthly() ? 'Bulan' : 'Hari';
+        $resetTime = $this->isMonthly() ? 'Awal Bulan (Siklus Kalender)' : '24 Jam (Pukul 00:00 WIB)';
+
+        return [
+            "{$this->max_devices} Device WhatsApp terhubung",
+            number_format($this->daily_message_limit, 0, ',', '.') . " Pesan / {$cycleLabel}",
+            "Reset Kuota Setiap {$resetTime}",
+            'REST API Key Terisolasi & Webhook',
+            'Anti-Ban Human Delay & Antrean Cerdas',
+        ];
+    }
+
+    /**
+     * Get effective benefits list.
+     * If custom benefits is empty, returns dynamic auto-generated list.
+     * Also normalizes any mismatch in cycle wording (e.g. 'Pesan / Hari' vs 'Pesan / Bulan').
+     */
+    public function getEffectiveBenefitsAttribute(): array
+    {
+        if (!empty($this->benefits) && is_array($this->benefits) && count($this->benefits) > 0) {
+            $cycleLabel = $this->isMonthly() ? 'Bulan' : 'Hari';
+            $wrongLabel = $this->isMonthly() ? 'Hari' : 'Bulan';
+            
+            return array_values(array_map(function ($b) use ($cycleLabel, $wrongLabel) {
+                // Fix any wording mismatch in user-entered benefits
+                $fixed = preg_replace('/(\/\s*)(' . $wrongLabel . ')/i', '$1' . $cycleLabel, $b);
+                $fixed = preg_replace('/(per\s*)(' . $wrongLabel . ')/i', '$1' . $cycleLabel, $fixed);
+                return $fixed;
+            }, $this->benefits));
+        }
+
+        return $this->generateDefaultBenefits();
+    }
+
+    /**
      * Get default Free package or create a fallback instance.
      * Guaranteed to ALWAYS return a package with price == 0.
      */

@@ -49,8 +49,16 @@ class WhatsAppService
                     $device->update(['status' => 'pending']);
                 }
 
-                if (isset($data['data']['qr_code']) && !isset($data['data']['qr'])) {
-                    $data['data']['qr'] = $data['data']['qr_code'];
+                if (isset($data['data']['qr_code'])) {
+                    $qrCode = $data['data']['qr_code'];
+                    $data['data']['qr'] = $qrCode;
+                    try {
+                        $svg = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->margin(2)->generate($qrCode);
+                        $data['data']['qr_svg'] = $svg;
+                        $data['data']['qr_base64'] = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                    } catch (\Throwable $qrEx) {
+                        Log::warning('[WA] QR SVG generation error: ' . $qrEx->getMessage());
+                    }
                 }
             }
 

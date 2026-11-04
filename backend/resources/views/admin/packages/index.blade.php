@@ -102,20 +102,19 @@
 
                     <!-- Benefit List -->
                     <div class="mb-5">
-                        <div class="text-[11px] font-bold text-mono-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                            <span>✨</span> Fitur & Benefit:
+                        <div class="text-[11px] font-bold text-mono-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><span>✨</span> Fitur & Benefit:</span>
+                            @if(empty($pkg->benefits))
+                                <span class="text-[9px] font-mono text-mono-400 bg-mono-900 border border-mono-800 px-1.5 py-0.5 rounded font-normal">Otomatis Sistem</span>
+                            @endif
                         </div>
                         <ul class="space-y-1.5">
-                            @if(!empty($pkg->benefits) && is_array($pkg->benefits))
-                                @foreach($pkg->benefits as $benefit)
-                                    <li class="text-xs text-mono-300 flex items-start gap-2">
-                                        <span class="text-mono-100 font-bold">✓</span>
-                                        <span class="leading-tight">{{ $benefit }}</span>
-                                    </li>
-                                @endforeach
-                            @else
-                                <li class="text-xs text-mono-500 italic">Belum ada daftar benefit khusus.</li>
-                            @endif
+                            @foreach($pkg->effective_benefits as $benefit)
+                                <li class="text-xs text-mono-300 flex items-start gap-2">
+                                    <span class="text-mono-100 font-bold">✓</span>
+                                    <span class="leading-tight">{{ $benefit }}</span>
+                                </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
@@ -146,7 +145,7 @@
     </div>
 
     <!-- MODAL CREATE PACKAGE -->
-    <div x-show="showCreateModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity>
+    <div x-show="showCreateModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity x-cloak>
         <div class="bg-mono-900 border border-mono-700 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto scrollbar-thin" @click.outside="showCreateModal = false">
             <div class="flex items-center justify-between pb-4 border-b border-mono-800 mb-5">
                 <div>
@@ -158,7 +157,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('admin.packages.store') }}" method="POST" @submit="submitWithLoading('Menyimpan paket baru...')" class="space-y-4 text-xs">
+            <form action="{{ route('admin.packages.store') }}" method="POST" @submit="syncCreateBenefits(false); submitWithLoading('Menyimpan paket baru...')" class="space-y-4 text-xs">
                 @csrf
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -179,18 +178,18 @@
                     </div>
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat (Slot)</label>
-                        <input type="number" name="max_devices" required min="1" max="100" value="2" class="w-full mono-input px-4 py-2.5 font-medium">
+                        <input type="number" name="max_devices" id="create_max_devices" required min="1" max="100" value="2" @input="syncCreateBenefits(false)" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Batas Kuota Pesan</label>
-                        <input type="number" name="daily_message_limit" required min="1" value="50" placeholder="Contoh: 1000" class="w-full mono-input px-4 py-2.5 font-medium">
+                        <input type="number" name="daily_message_limit" id="create_daily_message_limit" required min="1" value="50" placeholder="Contoh: 1000" @input="syncCreateBenefits(false)" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Siklus Reset Kuota</label>
-                        <select name="reset_cycle" required class="w-full mono-input px-4 py-2.5 font-medium">
+                        <select name="reset_cycle" id="create_reset_cycle" required @change="syncCreateBenefits(false)" class="w-full mono-input px-4 py-2.5 font-medium">
                             <option value="monthly" selected>📅 Bulanan (Reset awal bulan - Hemat / Aman)</option>
                             <option value="daily">⏰ Harian (Reset tiap 00:00 WIB)</option>
                         </select>
@@ -219,9 +218,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-mono-300 font-bold mb-1.5">Daftar Benefit & Keunggulan (1 baris per benefit)</label>
-                    <textarea name="benefits" rows="4" placeholder="2 Slot WhatsApp Device&#10;50 Pesan WhatsApp / Hari&#10;REST API & Webhook Akses&#10;Support Prioritas" class="w-full mono-input px-4 py-2.5 font-medium"></textarea>
-                    <p class="text-[10px] text-mono-400 mt-1">Tulis setiap keunggulan paket di baris baru (enter).</p>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-mono-300 font-bold">Daftar Benefit & Keunggulan (1 baris per benefit)</label>
+                        <button type="button" @click="syncCreateBenefits(true)" class="text-[10px] font-mono text-mono-300 hover:text-white bg-mono-800 hover:bg-mono-700 px-2.5 py-0.5 rounded border border-mono-700 transition">
+                            ✨ Generate Otomatis
+                        </button>
+                    </div>
+                    <textarea name="benefits" id="create-benefits-textarea" rows="4" placeholder="2 Slot WhatsApp Device&#10;50 Pesan WhatsApp / Bulan&#10;REST API & Webhook Akses&#10;Support Prioritas" class="w-full mono-input px-4 py-2.5 font-medium"></textarea>
+                    <p class="text-[10px] text-mono-400 mt-1">Kosongkan jika ingin sistem membuatkan otomatis berdasarkan kapasitas & kuota di atas.</p>
                 </div>
 
                 <div class="flex gap-3 pt-3">
@@ -233,7 +237,7 @@
     </div>
 
     <!-- MODAL EDIT PACKAGE -->
-    <div x-show="showEditModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity>
+    <div x-show="showEditModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto" x-transition.opacity x-cloak>
         <div class="bg-mono-900 border border-mono-700 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto scrollbar-thin" @click.outside="showEditModal = false">
             <div class="flex items-center justify-between pb-4 border-b border-mono-800 mb-5">
                 <div>
@@ -245,7 +249,7 @@
                 </button>
             </div>
 
-            <form :action="editActionUrl" method="POST" @submit="submitWithLoading('Menyimpan perubahan...')" class="space-y-4 text-xs">
+            <form :action="editActionUrl" method="POST" @submit="syncEditBenefits(false); submitWithLoading('Menyimpan perubahan...')" class="space-y-4 text-xs">
                 @csrf
                 @method('PUT')
 
@@ -267,18 +271,18 @@
                     </div>
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Max Perangkat (Slot)</label>
-                        <input type="number" name="max_devices" x-model="editForm.max_devices" required min="1" max="100" class="w-full mono-input px-4 py-2.5 font-medium">
+                        <input type="number" name="max_devices" x-model="editForm.max_devices" @input="syncEditBenefits(false)" required min="1" max="100" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Batas Kuota Pesan</label>
-                        <input type="number" name="daily_message_limit" x-model="editForm.daily_message_limit" required min="1" class="w-full mono-input px-4 py-2.5 font-medium">
+                        <input type="number" name="daily_message_limit" x-model="editForm.daily_message_limit" @input="syncEditBenefits(false)" required min="1" class="w-full mono-input px-4 py-2.5 font-medium">
                     </div>
                     <div>
                         <label class="block text-mono-300 font-bold mb-1.5">Siklus Reset Kuota</label>
-                        <select name="reset_cycle" x-model="editForm.reset_cycle" required class="w-full mono-input px-4 py-2.5 font-medium">
+                        <select name="reset_cycle" x-model="editForm.reset_cycle" @change="syncEditBenefits(false)" required class="w-full mono-input px-4 py-2.5 font-medium">
                             <option value="monthly">📅 Bulanan (Reset awal bulan - Hemat / Aman)</option>
                             <option value="daily">⏰ Harian (Reset tiap 00:00 WIB)</option>
                         </select>
@@ -307,9 +311,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-mono-300 font-bold mb-1.5">Daftar Benefit & Keunggulan (1 baris per benefit)</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-mono-300 font-bold">Daftar Benefit & Keunggulan (1 baris per benefit)</label>
+                        <button type="button" @click="syncEditBenefits(true)" class="text-[10px] font-mono text-mono-300 hover:text-white bg-mono-800 hover:bg-mono-700 px-2.5 py-0.5 rounded border border-mono-700 transition">
+                            ✨ Generate Otomatis
+                        </button>
+                    </div>
                     <textarea name="benefits" x-model="editForm.benefits_text" rows="4" class="w-full mono-input px-4 py-2.5 font-medium"></textarea>
-                    <p class="text-[10px] text-mono-400 mt-1">Tulis setiap keunggulan paket di baris baru (enter).</p>
+                    <p class="text-[10px] text-mono-400 mt-1">Kosongkan jika ingin sistem membuatkan otomatis berdasarkan kapasitas & kuota di atas.</p>
                 </div>
 
                 <div class="flex gap-3 pt-3">
@@ -366,11 +375,106 @@
                     benefits_text: benefitsText
                 };
                 this.editActionUrl = `/admin/packages/${pkg.id}`;
+                this.syncEditBenefits(false);
                 this.showEditModal = true;
             },
 
             submitWithLoading(msg) {
                 AppSwal.loading('Menyimpan Data...', msg);
+            },
+
+            syncCreateBenefits(forceReset = false) {
+                const devInput = document.getElementById('create_max_devices');
+                const limInput = document.getElementById('create_daily_message_limit');
+                const cycInput = document.getElementById('create_reset_cycle');
+                const textarea = document.getElementById('create-benefits-textarea');
+                if (!textarea) return;
+
+                const devices = parseInt(devInput?.value || '2', 10);
+                const limit = parseInt(limInput?.value || '50', 10);
+                const cycle = cycInput?.value || 'monthly';
+                const cycleLabel = cycle === 'monthly' ? 'Bulan' : 'Hari';
+                const resetTime = cycle === 'monthly' ? 'Awal Bulan' : '24 Jam';
+                const numFmt = new Intl.NumberFormat('id-ID').format(limit);
+
+                const deviceLine = `${devices} Device WhatsApp terhubung`;
+                const limitLine = `${numFmt} Pesan WhatsApp / ${cycleLabel}`;
+                const resetLine = `Reset Kuota Setiap ${resetTime}`;
+
+                let current = textarea.value.trim();
+                if (forceReset || !current) {
+                    textarea.value = `${deviceLine}\n${limitLine}\n${resetLine}\nREST API Key Terisolasi & Webhook\nAnti-Ban Human Delay & Antrean Cerdas`;
+                    return;
+                }
+
+                let lines = current.split('\n');
+                let devReplaced = false, limReplaced = false, resReplaced = false;
+                lines = lines.map(line => {
+                    const l = line.toLowerCase();
+                    if (!devReplaced && (l.includes('device') || l.includes('nomor') || l.includes('perangkat'))) {
+                        devReplaced = true;
+                        return deviceLine;
+                    }
+                    if (!limReplaced && (l.includes('pesan') || l.includes('msg') || l.includes('kuota'))) {
+                        limReplaced = true;
+                        return limitLine;
+                    }
+                    if (!resReplaced && l.includes('reset')) {
+                        resReplaced = true;
+                        return resetLine;
+                    }
+                    return line;
+                });
+
+                if (!devReplaced) lines.unshift(deviceLine);
+                if (!limReplaced) lines.splice(1, 0, limitLine);
+                if (!resReplaced) lines.splice(2, 0, resetLine);
+
+                textarea.value = lines.filter(Boolean).join('\n');
+            },
+
+            syncEditBenefits(forceReset = false) {
+                const devices = parseInt(this.editForm.max_devices || '1', 10);
+                const limit = parseInt(this.editForm.daily_message_limit || '0', 10);
+                const cycle = this.editForm.reset_cycle || 'daily';
+                const cycleLabel = cycle === 'monthly' ? 'Bulan' : 'Hari';
+                const resetTime = cycle === 'monthly' ? 'Awal Bulan' : '24 Jam';
+                const numFmt = new Intl.NumberFormat('id-ID').format(limit);
+
+                const deviceLine = `${devices} Device WhatsApp terhubung`;
+                const limitLine = `${numFmt} Pesan WhatsApp / ${cycleLabel}`;
+                const resetLine = `Reset Kuota Setiap ${resetTime}`;
+
+                let current = (this.editForm.benefits_text || '').trim();
+                if (forceReset || !current) {
+                    this.editForm.benefits_text = `${deviceLine}\n${limitLine}\n${resetLine}\nREST API Key Terisolasi & Webhook\nAnti-Ban Human Delay & Antrean Cerdas`;
+                    return;
+                }
+
+                let lines = current.split('\n');
+                let devReplaced = false, limReplaced = false, resReplaced = false;
+                lines = lines.map(line => {
+                    const l = line.toLowerCase();
+                    if (!devReplaced && (l.includes('device') || l.includes('nomor') || l.includes('perangkat'))) {
+                        devReplaced = true;
+                        return deviceLine;
+                    }
+                    if (!limReplaced && (l.includes('pesan') || l.includes('msg') || l.includes('kuota'))) {
+                        limReplaced = true;
+                        return limitLine;
+                    }
+                    if (!resReplaced && l.includes('reset')) {
+                        resReplaced = true;
+                        return resetLine;
+                    }
+                    return line;
+                });
+
+                if (!devReplaced) lines.unshift(deviceLine);
+                if (!limReplaced) lines.splice(1, 0, limitLine);
+                if (!resReplaced) lines.splice(2, 0, resetLine);
+
+                this.editForm.benefits_text = lines.filter(Boolean).join('\n');
             },
 
             async handleDelete(event, name, usersCount) {

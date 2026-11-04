@@ -90,8 +90,8 @@ curl -X POST http://localhost:8000/api/devices \
   -H "Content-Type: application/json" \
   -d '{"name": "My WA Number", "phone_number": "6281234567890"}'
 
-# 4. Connect device (scan QR from wa-service logs)
-curl -X POST http://localhost:8000/api/devices/1/connect \
+# 4. Scan QR via API (returns raw QR string, base64 SVG Data URI, or HTML view)
+curl -X GET http://localhost:8000/api/devices/1/scan \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 5. Send a message
@@ -110,15 +110,19 @@ curl -X POST http://localhost:8000/api/messages/send \
 | POST | `/api/auth/login` | Login, get token |
 | POST | `/api/auth/logout` | Logout |
 
-### Devices
+### Devices (CRUD & Scan API)
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/devices` | List devices |
-| POST | `/api/devices` | Create device |
-| DELETE | `/api/devices/{id}` | Delete device |
-| POST | `/api/devices/{id}/connect` | Connect to WA |
-| POST | `/api/devices/{id}/disconnect` | Disconnect |
-| GET | `/api/devices/{id}/status` | Get live status |
+| GET | `/api/devices` | List all user devices with live synced status |
+| POST | `/api/devices` | Create new device (`name`, `phone_number`) |
+| GET | `/api/devices/{id}` | Get detail of single device (by numeric ID or string `device_id`) |
+| PUT | `/api/devices/{id}` | Update device label/phone |
+| DELETE | `/api/devices/{id}` | Delete device & terminate active session |
+| GET | `/api/devices/{id}/status` | Get live connection status from WA engine |
+| GET | `/api/devices/{id}/scan` | **Scan via API** (returns raw QR string, base64 SVG Data URI, or HTML view) |
+| GET | `/api/devices/{id}/qr` | Direct SVG QR Code image stream (`image/svg+xml`) |
+| POST | `/api/devices/{id}/connect` | Initiate pairing session & trigger QR generation |
+| POST | `/api/devices/{id}/disconnect` | Disconnect WhatsApp session |
 
 ### Messages
 | Method | Endpoint | Description |
@@ -134,6 +138,8 @@ wa-gateway/
 ├── backend/          # Laravel 11 API
 │   ├── app/
 │   │   ├── Http/Controllers/Api/
+│   │   ├── Http/Requests/ (StoreDeviceRequest, UpdateDeviceRequest)
+│   │   ├── Http/Resources/ (DeviceResource)
 │   │   ├── Jobs/SendWhatsAppMessage.php
 │   │   ├── Models/ (Device, Message, ApiKey)
 │   │   └── Services/WhatsAppService.php

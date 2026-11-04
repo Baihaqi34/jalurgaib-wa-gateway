@@ -299,4 +299,49 @@ class KaseraPayTest extends TestCase
         $user->refresh();
         $this->assertNull($user->package_id);
     }
+
+    public function test_cannot_generate_new_invoice_while_active_pending_order_exists(): void
+    {
+        $user = User::create([
+            'name'     => 'Subscriber Tester',
+            'email'    => 'subscriber@example.com',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $package = Package::create([
+            'name'                => 'Starter Pro',
+            'slug'                => 'starter-pro-test',
+            'price'               => 75000,
+            'max_devices'         => 5,
+            'daily_message_limit' => 1000,
+            'reset_cycle'         => 'monthly',
+            'status'              => 'active',
+        ]);
+
+        // Create an active pending order
+        $order = Order::create([
+            'order_no'        => 'JG-TEST-PENDING-1',
+            'user_id'         => $user->id,
+            'package_id'      => $package->id,
+            'amount'          => 75781,
+            'status'          => 'pending',
+            'idempotency_key' => 'idemp-pending-1',
+        ]);
+
+        // Attempting to generate a new invoice while one is pending must be blocked
+        $response = $this->actingAs($user)->post(route('user.checkout.store'), [
+            'package_id' => $package->id,
+        ]);
+
+        $response->assertRedirect(route('user.upgrade'));
+        $response->assertSessionHas('error');
+
+        // Cancel the order
+        $cancelResponse = $this->actingAs($user)->post(route('user.checkout.cancel', $order->order_no));
+        $cancelResponse->assertRedirect(route('user.upgrade'));
+        $cancelResponse->assertSessionHas('success');
+
+        $order->refresh();
+        $this->assertSame('canceled', $order->status);
+    }
 }

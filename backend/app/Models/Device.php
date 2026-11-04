@@ -39,4 +39,14 @@ class Device extends Model
     {
         return $this->status === 'connected';
     }
+
+    /**
+     * Retrieve the model for a bound value (supports both numeric ID and string device_id).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)
+            ->orWhere('device_id', $value)
+            ->firstOrFail();
+    }
 }

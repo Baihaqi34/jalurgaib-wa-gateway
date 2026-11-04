@@ -96,6 +96,10 @@
         }
     </script>
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         :root {
             --mono-bg: #09090b;
             --mono-surface: #121215;
@@ -277,6 +281,49 @@
             border-color: #fafafa !important;
             box-shadow: 0 0 0 1px #fafafa !important;
             outline: none !important;
+        }
+
+        /* Pending Order Alert Styling */
+        .pending-alert-card {
+            background: linear-gradient(to right, rgba(245, 158, 11, 0.1), #121215 40%, #121215);
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .pending-alert-icon {
+            background-color: rgba(245, 158, 11, 0.18);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fcd34d;
+        }
+        .pending-alert-tag {
+            color: #fbbf24;
+        }
+        .pending-alert-title {
+            color: #fafafa;
+        }
+        .pending-alert-meta {
+            color: #d4d4d8;
+        }
+        .pending-alert-highlight {
+            color: #fcd34d;
+        }
+        .pending-cancel-btn {
+            background-color: #18181b;
+            color: #fca5a5;
+            border: 1px solid #7f1d1d;
+        }
+        .pending-cancel-btn:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+            border-color: #ef4444;
+        }
+        .pending-history-btn {
+            background-color: #18181b;
+            color: #d4d4d8;
+            border: 1px solid #27272a;
+        }
+        .pending-history-btn:hover {
+            background-color: #27272a;
+            color: #ffffff;
         }
 
         /* Theme Icon Visibility */
@@ -659,6 +706,53 @@
             border-top-color: #e2e8f0 !important;
             color: #94a3b8 !important;
         }
+
+        /* ─── PENDING ORDER ALERT IN LIGHT MODE (HIGH CONTRAST & ACCESSIBLE) ─── */
+        html.light .pending-alert-card {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+            border: 1px solid #fcd34d !important;
+            box-shadow: 0 4px 20px -2px rgba(217, 119, 6, 0.12) !important;
+        }
+        html.light .pending-alert-icon {
+            background-color: #fde68a !important;
+            border: 1px solid #f59e0b !important;
+            color: #92400e !important;
+        }
+        html.light .pending-alert-tag {
+            color: #92400e !important;
+            font-weight: 800 !important;
+        }
+        html.light .pending-alert-title {
+            color: #78350f !important;
+            font-weight: 800 !important;
+        }
+        html.light .pending-alert-meta {
+            color: #92400e !important;
+            font-weight: 600 !important;
+        }
+        html.light .pending-alert-highlight {
+            color: #78350f !important;
+            font-weight: 800 !important;
+        }
+        html.light .pending-cancel-btn {
+            background-color: #ffffff !important;
+            color: #dc2626 !important;
+            border: 1px solid #fca5a5 !important;
+        }
+        html.light .pending-cancel-btn:hover {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+            border-color: #ef4444 !important;
+        }
+        html.light .pending-history-btn {
+            background-color: #ffffff !important;
+            color: #475569 !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        html.light .pending-history-btn:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
     </style>
     <!-- Theme Switcher & Adaptive Favicon Logic -->
     <script>
@@ -693,7 +787,7 @@
     <div class="fixed bottom-[-10%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-white/[0.015] blur-[140px] pointer-events-none z-0"></div>
 
     <!-- Mobile Sidebar Backdrop -->
-    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden" x-transition.opacity></div>
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden" x-transition.opacity x-cloak></div>
 
     <!-- SIDEBAR -->
     @if(auth()->check() && auth()->user()->isAdmin())
@@ -831,6 +925,27 @@
         window.submitWithLoading = function(msg = 'Mohon tunggu sebentar...') {
             if (window.AppSwal && typeof window.AppSwal.loading === 'function') {
                 window.AppSwal.loading('Memproses...', msg);
+            }
+        };
+
+        window.confirmCancelOrder = async function(orderNo) {
+            if (window.AppSwal && typeof window.AppSwal.confirm === 'function') {
+                const confirmed = await AppSwal.confirm(
+                    'Batalkan Tagihan #' + orderNo + '?',
+                    'Apakah Anda yakin ingin membatalkan tagihan invoice ini? Tagihan yang dibatalkan tidak dapat dibayar lagi dan Anda dapat memilih paket baru.',
+                    'Ya, Batalkan Tagihan',
+                    true
+                );
+                if (confirmed) {
+                    AppSwal.loading('Membatalkan Tagihan...', 'Sedang memproses pembatalan...');
+                    const form = document.getElementById('cancel-order-form-' + orderNo);
+                    if (form) form.submit();
+                }
+            } else {
+                if (confirm('Batalkan tagihan #' + orderNo + '?')) {
+                    const form = document.getElementById('cancel-order-form-' + orderNo);
+                    if (form) form.submit();
+                }
             }
         };
 

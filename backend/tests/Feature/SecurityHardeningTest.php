@@ -22,6 +22,7 @@ class SecurityHardeningTest extends TestCase
         // Seed standard default package
         Package::create([
             'name'                => 'Starter Free',
+            'slug'                => 'starter-free',
             'badge'               => 'Free',
             'price'               => 0,
             'max_devices'         => 1,
@@ -46,8 +47,8 @@ class SecurityHardeningTest extends TestCase
         ]));
         $fakeToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.{$fakePayload}.fakesignature";
 
-        $response = $this->postJson(route('auth.firebase.callback'), [
-            'idToken' => $fakeToken,
+        $response = $this->postJson(route('auth.firebase'), [
+            'id_token' => $fakeToken,
         ]);
 
         // Must fail closed with 422 Unprocessable Entity

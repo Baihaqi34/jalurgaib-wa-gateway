@@ -74,6 +74,7 @@
 
     <!-- PRICING & TIER GRID -->
     <div>
+
         <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-3">
             <div>
                 <div class="text-[10px] font-mono font-bold text-mono-400 uppercase tracking-widest">PILIHAN TIER & PAKET</div>
@@ -143,7 +144,7 @@
                         </div>
                         <div class="p-3 bg-mono-950 rounded-xl border border-mono-800 text-center">
                             <div class="text-xs font-mono font-extrabold text-mono-50">{{ number_format($pkg->daily_message_limit, 0, ',', '.') }}</div>
-                            <div class="text-[10px] text-mono-500 font-semibold uppercase mt-0.5">Pesan / Hari</div>
+                            <div class="text-[10px] text-mono-500 font-semibold uppercase mt-0.5">Pesan / {{ $pkg->isMonthly() ? 'Bulan' : 'Hari' }}</div>
                         </div>
                     </div>
 
@@ -151,23 +152,12 @@
                     <div class="mb-6 flex-1">
                         <div class="text-[10px] font-mono font-bold text-mono-500 uppercase tracking-wider mb-2.5">Fitur & Manfaat:</div>
                         <ul class="space-y-2">
-                            @if(!empty($pkg->benefits) && is_array($pkg->benefits))
-                                @foreach($pkg->benefits as $benefit)
-                                    <li class="text-xs text-mono-300 flex items-start gap-2 leading-relaxed">
-                                        <span class="text-mono-100 font-bold flex-shrink-0">✓</span>
-                                        <span>{{ $benefit }}</span>
-                                    </li>
-                                @endforeach
-                            @else
-                                <li class="text-xs text-mono-300 flex items-start gap-2">
-                                    <span class="text-mono-100 font-bold">✓</span>
-                                    <span>Akses REST API & Webhook</span>
+                            @foreach($pkg->effective_benefits as $benefit)
+                                <li class="text-xs text-mono-300 flex items-start gap-2 leading-relaxed">
+                                    <span class="text-mono-100 font-bold flex-shrink-0">✓</span>
+                                    <span>{{ $benefit }}</span>
                                 </li>
-                                <li class="text-xs text-mono-300 flex items-start gap-2">
-                                    <span class="text-mono-100 font-bold">✓</span>
-                                    <span>Anti-Ban Humanized Delay</span>
-                                </li>
-                            @endif
+                            @endforeach
                         </ul>
                     </div>
 
@@ -194,15 +184,34 @@
                             </div>
                         @else
                             @if($pkg->price > 0)
-                                <form action="{{ route('user.checkout.store') }}" method="POST" @submit="submitWithLoading('Mempersiapkan checkout Kasera...')">
-                                    @csrf
-                                    <input type="hidden" name="package_id" value="{{ $pkg->id }}">
-                                    <button type="submit"
-                                            class="w-full py-3 px-4 rounded-xl mono-btn-primary font-extrabold text-xs text-center flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition">
+                                @if($pendingOrder && $pendingOrder->package_id === $pkg->id && $pendingOrder->checkout_url)
+                                    <a href="{{ $pendingOrder->checkout_url }}" target="_blank"
+                                       class="w-full py-3 px-4 rounded-xl mono-btn-primary font-extrabold text-xs text-center flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition">
                                         <span>⚡</span>
-                                        <span>Bayar Otomatis (QRIS / VA) →</span>
-                                    </button>
-                                </form>
+                                        <span>Lanjutkan Bayar #{{ $pendingOrder->order_no }} →</span>
+                                    </a>
+                                @elseif($pendingOrder && $pendingOrder->package_id !== $pkg->id)
+                                    <form action="{{ route('user.checkout.store') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="package_id" value="{{ $pkg->id }}">
+                                        <button type="submit"
+                                                class="w-full py-3 px-4 rounded-xl opacity-70 bg-mono-850 hover:opacity-100 border border-mono-700 text-mono-300 font-extrabold text-xs text-center flex items-center justify-center gap-2 transition"
+                                                title="Ada tagihan aktif lain (#{{ $pendingOrder->order_no }})">
+                                            <span>🔒</span>
+                                            <span>Pilih Paket Ini →</span>
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('user.checkout.store') }}" method="POST" @submit="submitWithLoading('Mempersiapkan checkout Kasera...')">
+                                        @csrf
+                                        <input type="hidden" name="package_id" value="{{ $pkg->id }}">
+                                        <button type="submit"
+                                                class="w-full py-3 px-4 rounded-xl mono-btn-primary font-extrabold text-xs text-center flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] transition">
+                                            <span>⚡</span>
+                                            <span>Bayar Otomatis (QRIS / VA) →</span>
+                                        </button>
+                                    </form>
+                                @endif
                                 @php
                                     $waText = urlencode("Halo Admin WA Gateway, saya ingin konsultasi upgrade paket akun '" . auth()->user()->email . "' ke paket *" . $pkg->name . "* (Rp " . number_format($pkg->price, 0, ',', '.') . "/bln).");
                                 @endphp

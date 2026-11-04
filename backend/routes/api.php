@@ -38,11 +38,13 @@ Route::post('api-keys/{apiKey}/revoke', [ApiKeyController::class, 'revoke']);
 
 // 🔒 Protected Gateway Routes (Wajib Header X-API-Key yang valid)
 Route::middleware('api_key')->group(function () {
-    // Device management
+    // Device management & QR Scan
     Route::apiResource('devices', DeviceController::class);
     Route::post('devices/{device}/connect',    [DeviceController::class, 'connect']);
     Route::post('devices/{device}/disconnect', [DeviceController::class, 'disconnect']);
     Route::get('devices/{device}/status',      [DeviceController::class, 'status']);
+    Route::get('devices/{device}/scan',        [DeviceController::class, 'scan']);
+    Route::get('devices/{device}/qr',          [DeviceController::class, 'qrImage']);
 
     // Messaging
     Route::post('messages/send',      [MessageController::class, 'sendText']);

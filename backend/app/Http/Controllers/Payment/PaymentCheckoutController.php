@@ -30,6 +30,18 @@ class PaymentCheckoutController extends Controller
         $user = $request->user();
         $package = Package::findOrFail($validated['package_id']);
 
+        // Check if user already has an active pending order that is NOT yet expired
+        if (!$package->isFree()) {
+            $activePending = $user->getActivePendingOrder();
+            if ($activePending) {
+                $expiresMinutes = (int) config('services.kasera.expires_in_minutes', 60);
+                $expiresAtWib = $activePending->created_at->timezone('Asia/Jakarta')->addMinutes($expiresMinutes)->format('H:i');
+                return redirect()->route('user.upgrade')->with('error', 
+                    "Anda masih memiliki tagihan aktif (#{$activePending->order_no}) untuk {$activePending->package->name} yang belum diselesaikan (batas bayar: {$expiresAtWib} WIB). Selesaikan pembayaran tagihan tersebut atau klik 'Batalkan Tagihan' sebelum membuat tagihan baru."
+                );
+            }
+        }
+
         try {
             $result = $this->paymentService->initiateCheckout($user, $package);
 
