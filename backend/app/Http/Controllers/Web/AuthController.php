@@ -322,7 +322,7 @@ class AuthController extends Controller
         $email = strtolower(trim($firebaseUser['email']));
         $uid = $firebaseUser['uid'] ?? null;
         $displayName = $firebaseUser['displayName'] ?: explode('@', $email)[0];
-        $photoUrl = $firebaseUser['photoUrl'] ?? null;
+        $photoUrl = !empty($firebaseUser['photoUrl']) ? mb_substr(trim($firebaseUser['photoUrl']), 0, 2048) : null;
 
         // Find existing user or register new user
         $hasFirebaseCol = \Illuminate\Support\Facades\Schema::hasColumn('users', 'firebase_uid');
